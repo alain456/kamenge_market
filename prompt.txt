@@ -1,0 +1,613 @@
+Prompt de génération — Frontend web d’administration
+Système de gestion du marché / centre commercial de Kamenge
+Rôle
+Tu es un lead frontend engineer et product designer senior. Construis uniquement le frontend web responsive du back-office d’administration du système de gestion du marché / centre commercial de Kamenge, au Burundi.
+
+Le résultat doit être une interface professionnelle, réellement navigable et prête à être branchée à une API plus tard. Ne construis pas l’application mobile des commerçants/clients : cette application sera développée séparément. Le périmètre ici concerne exclusivement les utilisateurs internes du marché : administrateur, agent du marché, comptable/agent de saisie, chef comptable/responsable financier et direction générale.
+
+Stack et contraintes techniques
+React avec TypeScript.
+Vite.
+Tailwind CSS.
+React Router pour la navigation.
+Utiliser des composants réutilisables et une architecture par fonctionnalités.
+Utiliser Lucide React pour les icônes.
+Utiliser Recharts pour les graphiques si nécessaire.
+Utiliser des données mockées locales réalistes, en français, afin que toutes les pages soient démontrables sans backend.
+Préparer une couche services/ ou api/ avec des fonctions asynchrones simulées, afin de remplacer facilement les mocks par de vraies requêtes HTTP.
+Ne pas écrire de backend, de serveur, de migration, de base de données, de logique Laravel ou de système d’authentification réel.
+Ne pas appeler de vraie API et ne pas demander de clé secrète.
+Prévoir les états loading, empty, error et success dans les composants.
+Le code doit être propre, fortement typé, maintenable et organisé.
+Objectif produit
+Créer le tableau de bord central de gestion du Mall Kamenge. L’administrateur doit pouvoir comprendre l’état du marché en quelques secondes, repérer les impayés, vérifier les bordereaux, gérer les commerçants et les emplacements, suivre les contrats et produire des rapports.
+
+L’interface doit donner une impression de contrôle, de traçabilité et de sécurité financière. Elle doit être adaptée à un usage quotidien par une équipe administrative, avec beaucoup de tableaux, de filtres, de statuts et d’actions de validation.
+
+Direction artistique
+Créer une interface SaaS administrative moderne, sobre et crédible, inspirée des outils de gestion financière et immobilière.
+
+Langue de l’interface : français.
+Devise principale : BIF / Franc burundais.
+Format des montants : lisible, avec séparateurs de milliers et suffixe BIF.
+Format des dates : français, par exemple 26 août 2026.
+Palette principale :
+bleu nuit / bleu ardoise pour la navigation et les titres ;
+bleu vif comme couleur d’action principale ;
+vert pour les emplacements libres et les paiements à jour ;
+jaune pour les bordereaux en attente ;
+rouge pour les impayés, retards et rejets ;
+noir ou gris anthracite avec motif/hachures pour les emplacements scellés.
+Fond général gris très clair, cartes blanches, bordures fines, ombres discrètes.
+Typographie sans-serif très lisible.
+Contraste accessible et états ne reposant pas uniquement sur la couleur : ajouter texte, icône ou badge.
+Interface dense mais respirante : les tableaux doivent être efficaces sans devenir visuellement étouffants.
+Prévoir un mode sombre seulement si cela ne complexifie pas inutilement le MVP ; la priorité est le thème clair.
+Structure générale de l’application
+Créer un layout d’administration avec :
+
+Une sidebar gauche persistante sur desktop :
+logo ou monogramme MK ;
+nom Mall Kamenge ;
+navigation principale ;
+profil de l’utilisateur connecté en bas ;
+bouton de déconnexion visuel.
+Une topbar :
+fil d’Ariane ;
+titre de la page courante ;
+sélecteur d’exercice ou de période ;
+recherche globale ;
+centre de notifications ;
+avatar et menu utilisateur.
+Une zone de contenu principale avec largeur confortable.
+Une sidebar mobile ou un drawer pour la navigation lorsque l’écran est étroit.
+La navigation doit être fonctionnelle côté frontend : chaque lien ouvre sa page, les boutons ouvrent leurs modales ou drawers, les filtres modifient les résultats et les actions mettent à jour les données mockées.
+
+Rôles et permissions à représenter dans l’interface
+Prévoir un sélecteur de rôle dans le mode démo ou une configuration mockée de l’utilisateur connecté. L’interface doit masquer ou désactiver les actions selon le rôle.
+
+Administrateur
+gérer les utilisateurs ;
+gérer les commerçants ;
+gérer les emplacements ;
+attribuer ou libérer un emplacement ;
+gérer les contrats ;
+définir le montant des loyers ;
+consulter les paiements ;
+consulter les impayés ;
+vérifier les bordereaux ;
+envoyer des notifications ;
+consulter les statistiques et rapports ;
+déclencher une procédure de scellé si les conditions sont réunies.
+Agent du marché
+consulter les commerçants et emplacements ;
+consulter les échéances ;
+enregistrer un paiement ;
+consulter un bordereau ;
+vérifier ou valider un bordereau selon sa permission ;
+rejeter un bordereau avec motif obligatoire ;
+gérer les échéances selon sa permission.
+Comptable / agent de saisie
+créer des brouillons d’écritures ou de demandes de fonds ;
+enregistrer des paiements et demandes ;
+consulter les écritures ;
+ne pas pouvoir effectuer l’approbation finale.
+Chef comptable / responsable financier
+contrôler, valider et confirmer les pièces ;
+consulter le grand livre, les journaux et les centres de coûts ;
+ne pas pouvoir réaliser l’approbation finale réservée à la direction.
+Direction générale
+consulter les données de pilotage ;
+approuver ou rejeter définitivement les demandes de décaissement ;
+autoriser les opérations critiques ;
+déclencher ou confirmer les procédures de scellé.
+Ajouter des tooltips ou messages explicatifs lorsqu’une action est indisponible à cause du rôle.
+
+Navigation et pages à construire
+1. Connexion
+Créer une page de connexion web administrative :
+
+logo Mall Kamenge ;
+email ou identifiant ;
+mot de passe ;
+case « Se souvenir de moi » ;
+bouton « Se connecter » ;
+état d’erreur ;
+état de chargement ;
+lien « Mot de passe oublié » purement visuel ou simulé ;
+petit texte indiquant que l’accès est réservé au personnel autorisé.
+Après connexion, rediriger vers le tableau de bord.
+
+2. Tableau de bord
+Construire un dashboard immédiatement exploitable avec :
+
+cartes KPI :
+chiffre d’affaires ou loyers attendus du mois ;
+paiements encaissés ;
+total des impayés ;
+bordereaux en attente ;
+emplacements occupés ;
+emplacements libres ;
+contrats actifs ;
+contrats en litige.
+graphique de l’évolution des encaissements et impayés sur les six derniers mois ;
+répartition des emplacements par statut ;
+aperçu des dernières activités ;
+tableau « Impayés prioritaires » trié par montant d’arriéré décroissant ;
+tableau « Bordereaux à vérifier » ;
+échéances proches ou en retard ;
+raccourcis d’action : Ajouter un commerçant, Attribuer un emplacement, Vérifier un bordereau, Générer les échéances.
+Les indicateurs doivent être cohérents entre eux et utiliser des données mockées réalistes.
+
+3. Vue des emplacements
+Créer une page de pilotage visuel des places du Mall :
+
+vue plan/grille des emplacements regroupés par zone ;
+possibilité de filtrer par zone, type et statut ;
+recherche par code, par exemple MALL-N1-B05 ;
+vue alternative en tableau ;
+légende claire :
+vert : libre ;
+bleu : occupé et à jour ;
+jaune : preuve soumise, en attente de vérification ;
+rouge : occupé avec facture impayée ;
+noir/hachuré : emplacement scellé.
+chaque emplacement doit afficher son code, son type et son statut ;
+clic sur une place pour ouvrir un drawer de détails ;
+détail : zone, type, surface en m², loyer mensuel, commerçant, contrat, dernière échéance, total dû ;
+actions selon les droits : modifier, attribuer, libérer, passer en maintenance, déclencher la procédure de scellé.
+Types d’emplacement à utiliser : Boutique, Kiosque, Stand.
+
+Statuts à utiliser : Libre, Occupée, Maintenance, Scellée.
+
+Le changement d’un emplacement occupé vers libre doit afficher une confirmation avec rappel des conséquences métier. Dans le frontend mocké, simuler la mise à jour après validation.
+
+4. Gestion des commerçants
+Créer une page de gestion des commerçants avec :
+
+tableau paginé ou simulé paginé ;
+nom complet ou raison sociale ;
+téléphone ;
+email ;
+numéro d’identité ;
+emplacement attribué ;
+statut ;
+montant dû ;
+dernière activité.
+recherche, filtres par statut et zone ;
+tri par nom, montant dû et date ;
+bouton Ajouter un commerçant ;
+import/export visuel si pertinent.
+Créer un drawer ou une page de détail commerçant avec des onglets :
+
+informations personnelles ;
+emplacements et contrats ;
+échéances et paiements ;
+bordereaux ;
+historique des notifications ;
+journal d’activité.
+Le formulaire doit gérer les erreurs de validation, notamment les champs obligatoires et les formats email/téléphone.
+
+5. Gestion des contrats
+Créer une page listant les contrats avec :
+
+identifiant ;
+commerçant ;
+code de l’emplacement ;
+date de début ;
+date de fin ;
+montant du loyer ;
+nombre de mois de caution ;
+montant de caution ;
+périodicité ;
+statut : Actif, Résilié, En litige ;
+autorisation de sous-location.
+Créer un parcours Attribuer un emplacement en plusieurs étapes :
+
+choisir un commerçant ;
+choisir uniquement un emplacement libre ;
+renseigner les dates et le montant du loyer ;
+renseigner le nombre de mois de caution ;
+afficher le calcul automatique de la caution : nombre de mois × loyer mensuel ;
+afficher un récapitulatif ;
+simuler l’enregistrement.
+Bloquer visuellement l’attribution d’un emplacement non libre. Afficher explicitement la clause anti-sous-location et le verrou Autorisation de sous-location : Non par défaut.
+
+Prévoir également :
+
+renouveler un contrat ;
+résilier un contrat ;
+afficher le montant à apurer avant résiliation ;
+libérer l’emplacement après résiliation ;
+afficher un avertissement lorsqu’un contrat est en litige.
+6. Échéances et facturation
+Créer une page des échéances avec :
+
+période ;
+commerçant ;
+emplacement ;
+date d’échéance ;
+montant ;
+montant payé ;
+reste à payer ;
+statut : À venir, Payée, Partiellement payée, Impayée, En retard ;
+pénalité éventuelle ;
+actions.
+Ajouter :
+
+filtres par période, statut, zone et commerçant ;
+recherche ;
+bouton Générer les échéances ;
+aperçu du résultat avant génération ;
+affichage de la règle de pénalité ;
+indicateur de retard ;
+détail d’une échéance avec timeline des événements.
+Utiliser pour la démonstration la règle de pénalité de 5 % du loyer de base lorsque la facture dépasse le délai configuré. La logique affichée doit rester clairement mockée côté frontend.
+
+7. Paiements et bordereaux
+Créer une page avec deux onglets :
+
+Paiements
+date ;
+commerçant ;
+échéance/facture ;
+montant ;
+mode de paiement : Virement, Mobile Money, Espèces ;
+référence ;
+statut : En attente, Confirmé, Rejeté ;
+agent responsable.
+Bordereaux à vérifier
+numéro de bordereau ;
+commerçant ;
+date d’envoi ;
+montant déclaré ;
+mode de paiement ;
+fichier joint ;
+statut ;
+date de vérification.
+Créer un workflow de vérification :
+
+ouvrir le bordereau dans un drawer ;
+afficher le nom du fichier, le type, la taille et un aperçu simulé ;
+comparer montant déclaré et montant attendu ;
+saisir un commentaire facultatif en cas de validation ;
+valider ou rejeter ;
+exiger un motif obligatoire lors du rejet ;
+mettre à jour le badge et l’historique.
+Prévoir les états En attente, Approuvé, Rejeté. Afficher les informations de vérification : utilisateur et date.
+
+8. Impayés et contentieux
+Créer un espace dédié au recouvrement :
+
+liste priorisée par montant d’arriérés décroissant ;
+commerçant ;
+emplacement ;
+nombre de mois impayés ;
+loyer de base ;
+pénalités ;
+total dû ;
+dernier rappel ;
+niveau de risque ;
+statut du dossier.
+Ajouter des filtres par zone, ancienneté, montant et statut.
+
+Dans le détail d’un dossier :
+
+résumé financier ;
+échéances impayées ;
+pénalités ;
+timeline complète des relances ;
+type de notification : Rappel J-5, Retard fin de mois, Mise en demeure, Manuel ;
+canal : Email, SMS ;
+adresse de destination ;
+statut d’envoi : Envoyé, Échec ;
+date et heure d’envoi.
+Ajouter les actions :
+
+envoyer une relance ;
+ouvrir l’historique des relances ;
+enregistrer une note interne ;
+déclencher la procédure de scellé selon les permissions.
+9. Procédure de scellé
+Créer une modale critique dédiée, uniquement visible aux rôles autorisés :
+
+rappeler le commerçant, la place et le montant dû ;
+rappeler le motif et le seuil atteint ;
+demander une confirmation explicite ;
+afficher les conséquences :
+statut de la place devient Scellée ;
+accès du portail client bloqué dans le futur produit mobile ;
+génération future d’un ordre de mission PDF ;
+permettre de saisir une note administrative ;
+afficher le statut après action dans le frontend mocké.
+Ne pas générer réellement le PDF dans ce frontend, mais prévoir un bouton ou une interface Télécharger l’ordre de mission désactivée avec un commentaire indiquant que la génération sera fournie par le backend.
+
+10. Comptabilité
+Créer une section comptable web adaptée aux rôles financiers :
+
+plan comptable arborescent ;
+classes de comptes ;
+journaux et pièces comptables ;
+lignes débit/crédit ;
+grand livre ;
+centres de coûts ;
+devises et paramètres d’arrondi ;
+configuration des comptes par défaut ;
+demandes de décaissement ;
+virements internes ;
+retours de fonds.
+Pour l’interface de saisie d’une pièce comptable :
+
+date ;
+numéro de document ;
+libellé ;
+centre de coûts ;
+lignes de comptes ;
+compte ;
+débit ;
+crédit ;
+devise ;
+commentaire.
+Afficher en temps réel :
+
+Total débit, Total crédit, Écart.
+
+Tant que Total débit ≠ Total crédit, afficher une erreur claire et désactiver la validation finale. Le message doit expliquer la règle de partie double.
+
+11. Workflow des demandes de décaissement
+Créer une page de suivi avec une timeline et des badges pour les états :
+
+Brouillon → Validé → Confirmé → Approuvé → Écriture comptable générée
+
+Prévoir le statut Rejeté depuis les étapes intermédiaires. Lors d’un rejet, le motif est obligatoire.
+
+Les actions disponibles doivent varier selon le rôle. La génération de l’écriture comptable ne doit être affichée qu’après l’approbation finale.
+
+12. Rapports et statistiques
+Créer une section rapports avec :
+
+revenus par période ;
+paiements encaissés ;
+impayés ;
+taux d’occupation ;
+performance par zone ;
+répartition des paiements par mode ;
+contrats actifs/résiliés/en litige ;
+historique des relances ;
+synthèse comptable par centre de coûts.
+Ajouter :
+
+sélection de période ;
+filtres par zone ;
+aperçu graphique ;
+tableau de données ;
+boutons Exporter CSV et Télécharger PDF visuels ou simulés ;
+état vide si aucun filtre ne retourne de résultat.
+13. Utilisateurs et paramètres
+Créer une page de gestion des utilisateurs :
+
+nom ;
+email ;
+téléphone ;
+rôle ;
+statut ;
+dernière connexion ;
+actions.
+Créer une page de paramètres avec :
+
+informations du Mall ;
+zones ;
+types d’emplacements ;
+taux de pénalité ;
+jour de génération des loyers ;
+délai de relance ;
+devise et précision décimale ;
+préférences de notification.
+Les paramètres sensibles doivent être présentés avec des avertissements et une demande de confirmation visuelle avant modification.
+
+14. Journal d’audit
+Créer une page « Journal d’audit » pour rendre visibles les exigences de traçabilité :
+
+utilisateur ;
+action ;
+ressource concernée ;
+ancien statut ;
+nouveau statut ;
+date et heure ;
+adresse ou contexte si disponible.
+Ne jamais proposer de suppression physique d’une écriture comptable validée. Pour une écriture validée, afficher plutôt une action Créer une extourne avec explication.
+
+Modèles de données frontend
+Créer des types TypeScript cohérents pour au minimum :
+
+User
+Role
+Market
+Zone
+Place
+Merchant
+Contract
+Invoice
+DueDate
+Payment
+PaymentSlip
+Verification
+Notification
+ReminderHistory
+Report
+AccountingAccount
+AccountingEntry
+AccountingEntryLine
+CostCenter
+DisbursementRequest
+AuditLog
+Les données mockées doivent inclure plusieurs zones, par exemple :
+
+Parking ;
+Zone Commerciale Bloc A ;
+Zone Commerciale Bloc B ;
+Sécurité ;
+Service Nettoyage ;
+Administration.
+Créer des exemples couvrant tous les états : libre, occupé à jour, preuve en attente, impayé, maintenance, scellé, contrat actif, résilié, en litige, bordereau approuvé et rejeté.
+
+Composants réutilisables attendus
+Créer et réutiliser au minimum :
+
+AdminLayout
+Sidebar
+Topbar
+Breadcrumbs
+PageHeader
+StatCard
+StatusBadge
+DataTable
+FilterBar
+SearchInput
+DateRangePicker
+EmptyState
+LoadingState
+ErrorState
+ConfirmDialog
+FormDrawer
+DetailsDrawer
+Timeline
+ProgressSteps
+MoneyDisplay
+PlaceStatusLegend
+PermissionGuard
+Toast
+Les composants doivent accepter des props typées et ne pas contenir de données métier dupliquées.
+
+UX et comportement
+Chaque bouton doit avoir un comportement visible ou être explicitement marqué comme simulé.
+Utiliser des toasts après les actions : validation, rejet, création, modification ou envoi de notification.
+Utiliser des modales de confirmation pour les actions irréversibles ou sensibles.
+Afficher un motif obligatoire lorsqu’un bordereau ou une demande est rejeté.
+Afficher une confirmation lorsque l’utilisateur quitte un formulaire non enregistré.
+Utiliser des skeletons pendant les chargements simulés.
+Prévoir des états vides utiles avec une action principale.
+Les tableaux doivent rester utilisables sur petit écran : scroll horizontal maîtrisé, colonnes prioritaires visibles, vue en cartes si nécessaire.
+Les formulaires doivent afficher les erreurs au niveau du champ.
+Les actions critiques doivent être séparées visuellement des actions ordinaires.
+Les statuts doivent être cohérents partout dans l’application.
+Utiliser des données de démonstration en français et ne pas laisser de lorem ipsum.
+Responsive
+La cible principale est le web d’administration sur ordinateur portable et desktop, mais l’interface doit rester utilisable sur tablette et petit écran :
+
+desktop : sidebar complète et tableaux riches ;
+tablette : sidebar rétractable ;
+mobile : drawer de navigation, cartes empilées et tableaux scrollables.
+Ne pas transformer cette interface en application mobile commerçant. Les écrans mobiles ici sont uniquement une adaptation du back-office pour un administrateur.
+
+Accessibilité
+navigation clavier ;
+focus visible ;
+labels explicites ;
+boutons avec aria-label si icône seule ;
+contrastes suffisants ;
+ne pas communiquer les statuts par la couleur seule ;
+messages d’erreur compréhensibles ;
+dialogues fermables au clavier.
+Architecture de fichiers recommandée
+Utiliser une organisation similaire :
+
+src/
+  app/
+    router.tsx
+    providers.tsx
+  components/
+    layout/
+    ui/
+    data-display/
+    feedback/
+  features/
+    auth/
+    dashboard/
+    places/
+    merchants/
+    contracts/
+    due-dates/
+    payments/
+    disputes/
+    accounting/
+    reports/
+    users/
+    audit/
+  services/
+    mock-api.ts
+  data/
+    mock-data.ts
+  types/
+    domain.ts
+  lib/
+    formatters.ts
+    permissions.ts
+  pages/
+  styles/
+
+Routes attendues
+Créer au minimum les routes suivantes :
+
+/login
+/dashboard
+/places
+/merchants
+/merchants/:id
+/contracts
+/contracts/new
+/due-dates
+/payments
+/payment-slips
+/disputes
+/disputes/:id
+/accounting
+/accounting/accounts
+/accounting/entries
+/accounting/ledger
+/accounting/disbursements
+/reports
+/users
+/audit-log
+/settings
+
+Critères d’acceptation
+Le frontend est considéré comme réussi si :
+
+L’application démarre avec une commande Vite standard et ne présente aucune erreur console bloquante.
+La page de connexion mène vers un dashboard fonctionnel avec un utilisateur mocké.
+Toutes les routes principales sont accessibles depuis la sidebar.
+Les pages clés contiennent des données réalistes et cohérentes.
+Les filtres, recherches, onglets, drawers, modales et actions principales fonctionnent côté frontend.
+Le workflow de validation des bordereaux impose un motif lors d’un rejet.
+Le workflow comptable empêche de valider une pièce déséquilibrée.
+Le workflow de décaissement respecte les états et les permissions.
+La vue des emplacements utilise les cinq codes couleur/statuts demandés.
+Les dossiers d’impayés sont triés par montant d’arriérés décroissant par défaut.
+Le détail d’un dossier affiche l’historique des relances.
+L’attribution bloque un emplacement non libre et calcule la caution.
+Les actions réservées à certains rôles sont masquées ou désactivées proprement.
+Le design est responsive, accessible et entièrement en français.
+Le code ne contient pas de backend ou de secrets et peut être branché à une API ultérieurement.
+Livrable final
+Fournis une application frontend admin complète avec :
+
+une interface visuellement aboutie ;
+des données mockées ;
+une navigation complète ;
+des composants réutilisables ;
+des interactions réalistes ;
+des commentaires uniquement là où ils aident réellement à remplacer les mocks par l’API ;
+un README expliquant l’installation, le lancement et les principaux choix d’architecture.
+Commence par construire le shell global, la connexion et le dashboard, puis implémente les modules dans l’ordre suivant :
+
+emplacements ;
+commerçants ;
+contrats ;
+échéances ;
+paiements et bordereaux ;
+impayés/contentieux ;
+comptabilité ;
+rapports ;
+utilisateurs, paramètres et audit.
+Ne t’arrête pas à une simple maquette statique : toutes les pages doivent être navigables et les interactions principales doivent être simulées avec un état local cohérent.

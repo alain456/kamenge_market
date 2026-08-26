@@ -1,0 +1,80 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #d2e8d5;
+  color: #1f2937;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+:root.dark body {
+  background-color: #111827; /* Tailwind gray-900 */
+  color: #f3f4f6; /* Tailwind gray-100 */
+}
+
+:root.dark .bg-white {
+  background-color: #1f2937 !important; /* gray-800 */
+  border-color: #374151 !important; /* gray-700 */
+}
+
+:root.dark .text-gray-900 {
+  color: #f9fafb !important; /* gray-50 */
+}
+
+:root.dark .text-gray-800 {
+  color: #f3f4f6 !important; /* gray-100 */
+}
+
+:root.dark .text-gray-700 {
+  color: #e5e7eb !important; /* gray-200 */
+}
+
+:root.dark .text-gray-600 {
+  color: #d1d5db !important; /* gray-300 */
+}
+
+:root.dark .bg-gray-50,
+:root.dark .bg-gray-100 {
+  background-color: #374151 !important; /* gray-700 */
+}
+
+:root.dark .border-gray-100,
+:root.dark .border-gray-200 {
+  border-color: #4b5563 !important; /* gray-600 */
+}
+
+/* Custom hatching for sealed places */
+.pattern-sealed {
+  background-color: #1f2937;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #111827,
+    #111827 10px,
+    #374151 10px,
+    #374151 20px
+  );
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
