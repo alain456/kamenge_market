@@ -1,6 +1,30 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-mint-50: #edf4f5;
+  --color-mint-100: #d3e4e7;
+  --color-mint-200: #adcbd1;
+  --color-mint-300: #7eabb3;
+  --color-mint-400: #548c95;
+  --color-mint-500: #2d7986;
+  --color-mint-600: #28646f;
+  --color-mint-700: #24515a;
+  --color-mint-800: #22434a;
+  --color-mint-900: #1f383f;
+
+  --color-emerald-50: #fff7ed;
+  --color-emerald-100: #ffeed5;
+  --color-emerald-200: #ffd9a7;
+  --color-emerald-300: #ffbd6b;
+  --color-emerald-400: #ffa133;
+  --color-emerald-500: #fe8c15;
+  --color-emerald-600: #ef6f06;
+  --color-emerald-700: #c65408;
+  --color-emerald-800: #9d420f;
+  --color-emerald-900: #7e3810;
+}
+
 :root {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   color-scheme: light;
@@ -9,8 +33,8 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #d2e8d5;
-  color: #1f2937;
+  background-color: #f8fafc; /* Very light slate for contrast with white cards */
+  color: #1e293b; /* 4th color choice: deep slate for text */
   font-family: 'Plus Jakarta Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
