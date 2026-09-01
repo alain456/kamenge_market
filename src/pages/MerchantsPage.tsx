@@ -9,13 +9,14 @@ import { formatBIF, formatDate } from '../lib/formatters';
 import { mockMerchants, mockPlaces } from '../data/mock-data';
 import { Merchant } from '../types/domain';
 import { MockApiService } from '../services/mock-api';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
+import { PermissionGate } from '../components/auth/PermissionGate';
 import { useToast } from '../components/ui/Toast';
 import { UserPlus, Mail, Phone, Shield, ExternalLink } from 'lucide-react';
 
 export const MerchantsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { permissions } = useAuth();
+  const { hasPermission } = usePermissions();
   const { showToast } = useToast();
 
   const [merchants, setMerchants] = useState<Merchant[]>(mockMerchants);
@@ -109,7 +110,7 @@ export const MerchantsPage: React.FC = () => {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/merchants/${r.id}`);
+            navigate(`/commerce/${r.id}`);
           }}
           className="px-3 py-1.5 bg-gray-100 hover:bg-emerald-100 hover:text-emerald-800 text-gray-700 font-bold rounded-xl text-xs flex items-center gap-1 transition-colors"
         >
@@ -127,7 +128,7 @@ export const MerchantsPage: React.FC = () => {
         subtitle="Répertoire des commerçants du Mall, suivi des coordonnées et état financier"
         breadcrumbs={[{ label: 'Commerçants' }]}
         actions={
-          permissions.canManageMerchants && (
+          <PermissionGate permission="commerce.create">
             <button
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2.5 bg-mint-500 hover:bg-mint-600 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center gap-2"
@@ -135,7 +136,7 @@ export const MerchantsPage: React.FC = () => {
               <UserPlus className="w-4 h-4" />
               <span>Nouveau Commerçant</span>
             </button>
-          )
+          </PermissionGate>
         }
       />
 
@@ -163,7 +164,7 @@ export const MerchantsPage: React.FC = () => {
         columns={tableColumns}
         data={filteredMerchants}
         keyExtractor={(m) => m.id}
-        onRowClick={(m) => navigate(`/merchants/${m.id}`)}
+        onRowClick={(m) => navigate(`/commerce/${m.id}`)}
       />
 
       {/* Modal Create Merchant */}

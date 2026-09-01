@@ -17,7 +17,7 @@ import {
   LogOut,
   X,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { usePermissions } from '../../context/AuthContext';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -25,22 +25,20 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMobile }) => {
-  const { logout, currentUser, permissions } = useAuth();
+  const { logout, currentUser, hasPermission, canAccessDomain } = usePermissions();
   const navigate = useNavigate();
 
   const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true }, // Everyone sees a dashboard
-    { to: '/places', label: 'Emplacements', icon: Store, show: permissions.canManagePlaces },
-    { to: '/merchants', label: 'Commerçants', icon: Users, show: permissions.canManageMerchants },
-    { to: '/contracts', label: 'Contrats', icon: FileText, show: permissions.canCreateContract },
-    { to: '/due-dates', label: 'Échéances', icon: CalendarCheck, show: true },
-    { to: '/payments', label: 'Paiements', icon: CreditCard, show: true },
-    { to: '/disputes', label: 'Impayés & Contentieux', icon: AlertOctagon, show: permissions.canViewDisputes },
-    { to: '/accounting', label: 'Comptabilité', icon: Calculator, show: permissions.canAccessAccounting },
-    { to: '/reports', label: 'Rapports & Stats', icon: BarChart3, show: permissions.canViewReports },
-    { to: '/users', label: 'Utilisateurs', icon: UserCheck, show: permissions.canManageUsers },
-    { to: '/audit-log', label: 'Journal d’Audit', icon: History, show: permissions.canManageUsers },
-    { to: '/settings', label: 'Paramètres', icon: Settings, show: permissions.canEditSettings },
+    { to: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard, show: true },
+    { to: '/commerce', label: 'Commerce', icon: Store, show: canAccessDomain('commerce') },
+    { to: '/espaces', label: 'Espaces', icon: LayoutDashboard, show: canAccessDomain('espaces') },
+    { to: '/finances', label: 'Finances', icon: Calculator, show: canAccessDomain('finances') },
+    { to: '/ressources-humaines', label: 'Ressources humaines', icon: Users, show: canAccessDomain('rh') },
+    { to: '/infrastructures', label: 'Infrastructures', icon: Settings, show: canAccessDomain('infrastructures') },
+    { to: '/securite', label: 'Sécurité', icon: AlertOctagon, show: canAccessDomain('securite') },
+    { to: '/documents', label: 'Documents', icon: FileText, show: canAccessDomain('documents') },
+    { to: '/plaintes', label: 'Plaintes', icon: AlertOctagon, show: canAccessDomain('plaintes') },
+    { to: '/administration/utilisateurs', label: 'Administration des accès', icon: UserCheck, show: hasPermission('rh.validate') },
   ].filter(item => item.show);
 
   return (
@@ -104,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
 
         {/* Bottom Card - Green Rocket Shortcut exact match to reference image */}
         <div className="mt-4 pt-4 border-t border-gray-100 flex-1 flex flex-col justify-end">
-          {permissions.canCreateContract && (
+          {hasPermission('commerce.create') && (
             <div className="bg-mint-500 text-white rounded-3xl p-4 text-center relative overflow-hidden shadow-md mb-4">
               {/* Circular Badge Floating Icon */}
               <div className="w-12 h-12 bg-white text-mint-500 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
@@ -139,10 +137,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
               />
               <div className="truncate min-w-0">
                 <p className="text-xs font-bold text-gray-900 truncate">
-                  {currentUser?.name || 'Jonson N.'}
+                  {currentUser?.fullName || 'Utilisateur'}
                 </p>
                 <p className="text-[10px] font-semibold text-gray-400 truncate">
-                  {currentUser?.role}
+                  {currentUser?.roleId}
                 </p>
               </div>
             </div>

@@ -4,7 +4,7 @@ import { PaymentSlip } from '../../types/domain';
 import { formatBIF, formatDate } from '../../lib/formatters';
 import { StatusBadge } from '../ui/StatusBadge';
 import { CheckCircle2, XCircle, FileText, AlertCircle, Eye, UserCheck } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { usePermissions } from '../../context/AuthContext';
 
 interface SlipVerifyDrawerProps {
   isOpen: boolean;
@@ -24,7 +24,7 @@ export const SlipVerifyDrawer: React.FC<SlipVerifyDrawerProps> = ({
   slip,
   onVerify,
 }) => {
-  const { currentUser } = useAuth();
+  const { currentUser } = usePermissions();
   const [comment, setComment] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [activeTab, setActiveTab] = useState<'decision' | 'preview'>('decision');

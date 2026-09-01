@@ -7,12 +7,12 @@ import { Modal } from '../components/ui/Modal';
 import { formatBIF, formatDateShort } from '../lib/formatters';
 import { DisbursementRequest as Disbursement } from '../types/domain';
 import { MockApiService } from '../services/mock-api';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { Calculator, Plus, CheckCircle, XCircle } from 'lucide-react';
 
 export const AccountingPage: React.FC = () => {
-  const { permissions, currentUser } = useAuth();
+  const { hasPermission, currentUser } = usePermissions();
   const { showToast } = useToast();
 
   const [disbursements, setDisbursements] = useState<Disbursement[]>([]);
@@ -127,7 +127,7 @@ export const AccountingPage: React.FC = () => {
     {
       header: 'Action',
       accessor: (r) => {
-        if (r.status === 'Validé' && permissions.canApproveDisbursements) {
+        if (r.status === 'Validé' && hasPermission('finances.validate')) {
           return (
             <div className="flex items-center gap-2">
                <button onClick={() => handleApprove(r.id, 'APPROUVE')} className="text-emerald-600 hover:text-emerald-700 bg-emerald-50 p-1.5 rounded-lg"><CheckCircle className="w-4 h-4" /></button>
@@ -135,7 +135,7 @@ export const AccountingPage: React.FC = () => {
             </div>
           );
         }
-        if (r.status === 'Confirmé' && permissions.canApproveDisbursements) {
+        if (r.status === 'Confirmé' && hasPermission('finances.validate')) {
           return (
             <div className="flex items-center gap-2">
                <button onClick={() => handleApprove(r.id, 'APPROUVE')} className="text-emerald-600 hover:text-emerald-700 bg-emerald-50 p-1.5 rounded-lg"><CheckCircle className="w-4 h-4" /></button>
@@ -155,7 +155,7 @@ export const AccountingPage: React.FC = () => {
         subtitle="Suivi des dépenses et validation des décaissements (Workflow à double vérification)"
         breadcrumbs={[{ label: 'Comptabilité' }]}
         actions={
-          permissions.canCreateAccountingEntries && (
+          hasPermission('finances.create') && (
             <button
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2.5 bg-mint-500 hover:bg-mint-600 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center gap-2"

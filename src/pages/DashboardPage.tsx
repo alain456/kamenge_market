@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatCard } from '../components/ui/StatCard';
 import { MoneyDisplay } from '../components/ui/MoneyDisplay';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatBIF } from '../lib/formatters';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
 import {
   Users,
   UserCheck,
   FileCheck,
   Store,
   ArrowRight,
-  PlusCircle,
-  Calendar,
   AlertTriangle,
   FileText,
+  Calculator,
+  CalendarCheck,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -29,10 +29,10 @@ import {
 } from 'recharts';
 import { mockPlaces, mockPaymentSlips, mockDisputes } from '../data/mock-data';
 
-export const DashboardPage: React.FC = () => {
+// --- ADMIN DASHBOARD (Existing layout) ---
+const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  // Graph mock data (6-month collection vs unpaid evolution)
   const chartData = [
     { date: '04 Jan', encaisses: 200, attendus: 300 },
     { date: '08 Jan', encaisses: 400, attendus: 350 },
@@ -45,28 +45,19 @@ export const DashboardPage: React.FC = () => {
     { date: '31 Jan', encaisses: 450, attendus: 650 },
   ];
 
-  // Donut chart mock data (Place Distribution)
   const pieData = [
-    { name: 'Boutiques', value: 35, color: '#8b5cf6' }, // Purple
-    { name: 'Kiosques', value: 25, color: '#06b6d4' },  // Cyan
-    { name: 'Stands', value: 25, color: '#3b82f6' },     // Blue
-    { name: 'Maintenance', value: 15, color: '#2aa848' },// Green
+    { name: 'Boutiques', value: 35, color: '#8b5cf6' },
+    { name: 'Kiosques', value: 25, color: '#06b6d4' },
+    { name: 'Stands', value: 25, color: '#3b82f6' },
+    { name: 'Maintenance', value: 15, color: '#2aa848' },
   ];
 
-  // Priority Unpaid table data sorted descending by total due
   const priorityUnpaid = [...mockDisputes].sort((a, b) => b.totalDue - a.totalDue);
-
-  // Pending bordereaux
   const pendingSlips = mockPaymentSlips.filter((s) => s.status === 'EN_ATTENTE');
-
-  const { permissions, currentUser } = useAuth();
-
 
   return (
     <div className="space-y-5 pb-6">
-      {/* Top 4 KPI Stat Cards + Right Donut Chart Layout exact to reference image */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left 4 KPI Cards Grid (8 cols) */}
         <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <StatCard
             title="35 Nouveaux Locataires"
@@ -77,7 +68,7 @@ export const DashboardPage: React.FC = () => {
             icon={Users}
             iconBgColor="bg-amber-500"
             periodText="Ce mois"
-            onClick={() => navigate('/merchants')}
+            onClick={() => navigate('/commerce')}
           />
           <StatCard
             title="15 Contrats Résiliés"
@@ -88,7 +79,7 @@ export const DashboardPage: React.FC = () => {
             icon={UserCheck}
             iconBgColor="bg-emerald-500"
             periodText="Ce mois"
-            onClick={() => navigate('/contracts')}
+            onClick={() => navigate('/commerce')}
           />
           <StatCard
             title="22 Bordereaux Validés"
@@ -99,7 +90,7 @@ export const DashboardPage: React.FC = () => {
             icon={FileCheck}
             iconBgColor="bg-sky-500"
             periodText="Ce mois"
-            onClick={() => navigate('/payment-slips')}
+            onClick={() => navigate('/finances')}
           />
           <StatCard
             title="35 Emplacements Occupés"
@@ -110,11 +101,10 @@ export const DashboardPage: React.FC = () => {
             icon={Store}
             iconBgColor="bg-purple-500"
             periodText="Ce mois"
-            onClick={() => navigate('/places')}
+            onClick={() => navigate('/espaces')}
           />
         </div>
 
-        {/* Right Donut Chart Card (5 cols) matching "External Resources" image card */}
         <div className="lg:col-span-5 bg-white rounded-3xl p-5 shadow-xs border border-gray-100/80 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-extrabold text-gray-900">Répartition des Emplacements</h3>
@@ -122,7 +112,6 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           <div className="flex items-center justify-between gap-4 my-auto">
-            {/* Pie / Donut Chart */}
             <div className="w-44 h-44 relative shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -146,7 +135,6 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Donut Legend exact match to image layout */}
             <div className="space-y-2 text-xs font-bold">
               {pieData.map((item) => (
                 <div key={item.name} className="flex items-center gap-2.5">
@@ -162,9 +150,7 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Bottom Section: Left Smooth Curved Line Chart + Right Revenue & Expense Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left Curved Chart Card (8 cols) matching "Game Stats" in reference image */}
         <div className="lg:col-span-8 bg-white rounded-3xl p-5 shadow-xs border border-gray-100/80 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
             <div>
@@ -174,7 +160,6 @@ export const DashboardPage: React.FC = () => {
             <span className="text-gray-400 text-xs font-bold cursor-pointer">•••</span>
           </div>
 
-          {/* Smooth Green Area Line Chart */}
           <div className="h-64 w-full mt-2">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -228,9 +213,7 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right 2 Stacked Cards (4 cols) matching "Total user" and "Game Expenses" in reference image */}
         <div className="lg:col-span-4 space-y-4">
-          {/* Top Card: Total User / Recouvrement Encaissé */}
           <div className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100/80 flex flex-col justify-between">
             <div>
               <span className="text-[11px] font-semibold text-gray-400 block mb-1">Total Encaissé (Mois)</span>
@@ -238,39 +221,22 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             <div className="mt-4 flex items-center justify-between">
-              {/* Merchant Avatars Stack */}
               <div className="flex items-center -space-x-2">
-                <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                  className="w-7 h-7 rounded-full border-2 border-white object-cover"
-                  alt="Locataire"
-                />
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
-                  className="w-7 h-7 rounded-full border-2 border-white object-cover"
-                  alt="Locataire"
-                />
-                <img
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80"
-                  className="w-7 h-7 rounded-full border-2 border-white object-cover"
-                  alt="Locataire"
-                />
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" className="w-7 h-7 rounded-full border-2 border-white object-cover" alt="Locataire" />
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" className="w-7 h-7 rounded-full border-2 border-white object-cover" alt="Locataire" />
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" className="w-7 h-7 rounded-full border-2 border-white object-cover" alt="Locataire" />
                 <div className="w-7 h-7 rounded-full bg-emerald-500 text-white font-extrabold text-[10px] flex items-center justify-center border-2 border-white">
                   +8
                 </div>
               </div>
 
-              <button
-                onClick={() => navigate('/payments')}
-                className="text-xs font-extrabold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
-              >
+              <button onClick={() => navigate('/finances')} className="text-xs font-extrabold text-emerald-700 hover:text-emerald-800 flex items-center gap-1">
                 <span>Voir Tout</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Bottom Card: Game Expenses / Total Impayés */}
           <div className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100/80 flex flex-col justify-between">
             <div>
               <span className="text-[11px] font-semibold text-gray-400 block mb-1">Total Impayés & Arriérés</span>
@@ -282,10 +248,7 @@ export const DashboardPage: React.FC = () => {
                 $
               </div>
 
-              <button
-                onClick={() => navigate('/disputes')}
-                className="text-xs font-extrabold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
-              >
+              <button onClick={() => navigate('/plaintes')} className="text-xs font-extrabold text-emerald-700 hover:text-emerald-800 flex items-center gap-1">
                 <span>Voir Tout</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -294,9 +257,7 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Priority Tables Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
-        {/* Impayés Prioritaires */}
         <div className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -305,10 +266,7 @@ export const DashboardPage: React.FC = () => {
                 Impayés Prioritaires (Trié par montant)
               </h3>
             </div>
-            <button
-              onClick={() => navigate('/disputes')}
-              className="text-xs font-bold text-emerald-600 hover:text-emerald-700"
-            >
+            <button onClick={() => navigate('/plaintes')} className="text-xs font-bold text-emerald-600 hover:text-emerald-700">
               Voir tous les contentieux
             </button>
           </div>
@@ -331,7 +289,6 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Bordereaux à Vérifier */}
         <div className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -340,10 +297,7 @@ export const DashboardPage: React.FC = () => {
                 Bordereaux Bancaires en Attente
               </h3>
             </div>
-            <button
-              onClick={() => navigate('/payment-slips')}
-              className="text-xs font-bold text-emerald-600 hover:text-emerald-700"
-            >
+            <button onClick={() => navigate('/finances')} className="text-xs font-bold text-emerald-600 hover:text-emerald-700">
               Vérifier tout
             </button>
           </div>
@@ -367,10 +321,7 @@ export const DashboardPage: React.FC = () => {
                       <div className="font-extrabold text-gray-900">{formatBIF(slip.declaredAmount)}</div>
                       <span className="text-[10px] text-gray-400 font-bold">{slip.method}</span>
                     </div>
-                    <button
-                      onClick={() => navigate('/payment-slips')}
-                      className="px-3 py-1 bg-amber-50 text-amber-700 font-bold rounded-full hover:bg-amber-100"
-                    >
+                    <button onClick={() => navigate('/finances')} className="px-3 py-1 bg-amber-50 text-amber-700 font-bold rounded-full hover:bg-amber-100">
                       Vérifier
                     </button>
                   </div>
@@ -382,4 +333,52 @@ export const DashboardPage: React.FC = () => {
       </div>
     </div>
   );
+};
+
+// --- CASHIER DASHBOARD ---
+const CashierDashboard: React.FC = () => {
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-black text-gray-900 mb-4">Ma Caisse</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard title="Encaissements du jour" value={formatBIF(850000)} icon={Calculator} iconBgColor="bg-emerald-500" periodText="Aujourd'hui" />
+        <StatCard title="Opérations" value="45" icon={FileText} iconBgColor="bg-sky-500" periodText="Aujourd'hui" />
+      </div>
+      <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80 min-h-[300px] flex items-center justify-center text-gray-400">
+        Historique de caisse et opérations à valider
+      </div>
+    </div>
+  );
+};
+
+// --- GENERIC STUB DASHBOARD ---
+const StubDashboard: React.FC<{ title: string }> = ({ title }) => (
+  <div className="p-6">
+    <h1 className="text-2xl font-black text-gray-900 mb-4">Tableau de bord : {title}</h1>
+    <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80 min-h-[400px] flex items-center justify-center text-gray-400">
+      Aperçu spécifique pour le rôle {title} en cours de construction...
+    </div>
+  </div>
+);
+
+
+export const DashboardPage: React.FC = () => {
+  const { currentRole } = usePermissions();
+
+  switch (currentRole?.id) {
+    case 'admin':
+      return <AdminDashboard />;
+    case 'caissier':
+      return <CashierDashboard />;
+    case 'secretaire':
+      return <StubDashboard title="Secrétaire" />;
+    case 'comptable':
+      return <StubDashboard title="Comptable" />;
+    case 'agent_perception':
+      return <StubDashboard title="Agent de Perception" />;
+    case 'agent_enregistrement':
+      return <StubDashboard title="Agent d'enregistrement" />;
+    default:
+      return <AdminDashboard />;
+  }
 };

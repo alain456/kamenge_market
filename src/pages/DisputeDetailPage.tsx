@@ -6,7 +6,7 @@ import { formatBIF } from '../lib/formatters';
 import { MockApiService } from '../services/mock-api';
 import { Dispute, ReminderHistoryItem } from '../types/domain';
 import { mockReminders, mockPlaces } from '../data/mock-data';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { SealModal } from '../components/domain/SealModal';
 import { AlertOctagon, Mail, Phone, Calendar, Lock, Send, Clock, Edit3 } from 'lucide-react';
@@ -14,7 +14,7 @@ import { AlertOctagon, Mail, Phone, Calendar, Lock, Send, Clock, Edit3 } from 'l
 export const DisputeDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { permissions } = useAuth();
+  const { hasPermission } = usePermissions();
   const { showToast } = useToast();
 
   const [dispute, setDispute] = useState<Dispute | null>(null);
@@ -67,7 +67,7 @@ export const DisputeDetailPage: React.FC = () => {
         subtitle={`Suivi de recouvrement pour l'emplacement ${dispute.placeCode}`}
         breadcrumbs={[{ label: 'Contentieux', to: '/disputes' }, { label: 'Détail Dossier' }]}
         actions={
-          permissions.canTriggerSeal && dispute.status !== 'Procédure Scellé' && (
+          hasPermission('espaces.delete') && dispute.status !== 'Procédure Scellé' && (
              <button
               onClick={() => setSealModalOpen(true)}
               className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center gap-2"

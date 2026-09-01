@@ -12,13 +12,14 @@ import { formatBIF } from '../lib/formatters';
 import { mockPlaces, mockZones } from '../data/mock-data';
 import { Place, PlaceStatus, PlaceType } from '../types/domain';
 import { MockApiService } from '../services/mock-api';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
+import { PermissionGate } from '../components/auth/PermissionGate';
 import { useToast } from '../components/ui/Toast';
 import { LayoutGrid, Table, Search, Filter, Lock, Plus, UserPlus, LogOut, Wrench } from 'lucide-react';
 
 export const PlacesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { permissions } = useAuth();
+  const { hasPermission } = usePermissions();
   const { showToast } = useToast();
 
   const [places, setPlaces] = useState<Place[]>(mockPlaces);
@@ -103,15 +104,15 @@ export const PlacesPage: React.FC = () => {
         subtitle="Pilotage visuel et statut en temps réel des boutiques, kiosques et stands"
         breadcrumbs={[{ label: 'Emplacements' }]}
         actions={
-          permissions.canCreateContract && (
+          <PermissionGate permission="espaces.create">
             <button
-              onClick={() => navigate('/contracts/new')}
+              onClick={() => navigate('/commerce')}
               className="px-4 py-2.5 bg-mint-500 hover:bg-mint-600 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
               <span>Attribuer un local</span>
             </button>
-          )
+          </PermissionGate>
         }
       />
 
@@ -289,11 +290,11 @@ export const PlacesPage: React.FC = () => {
                 Actions sur l'emplacement
               </h4>
 
-              {selectedPlace.status === 'LIBRE' && permissions.canCreateContract && (
+              {selectedPlace.status === 'LIBRE' && hasPermission('espaces.create') && (
                 <button
                   onClick={() => {
                     setSelectedPlace(null);
-                    navigate('/contracts/new');
+                    navigate('/commerce');
                   }}
                   className="w-full py-2.5 bg-mint-500 hover:bg-mint-600 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center justify-center gap-2"
                 >
@@ -302,17 +303,17 @@ export const PlacesPage: React.FC = () => {
                 </button>
               )}
 
-              {selectedPlace.status !== 'LIBRE' && permissions.canManagePlaces && (
+              {selectedPlace.status !== 'LIBRE' && hasPermission('espaces.update') && (
                 <button
                   onClick={() => setReleaseDialogOpen(true)}
                   className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center justify-center gap-2"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Libérer l’emplacement (Résilier & Libérer)</span>
+                  <span>Libérer l'emplacement (Résilier & Libérer)</span>
                 </button>
               )}
 
-              {permissions.canTriggerSeal && selectedPlace.status !== 'SCELLE' && (
+              {hasPermission('espaces.delete') && selectedPlace.status !== 'SCELLE' && (
                 <button
                   onClick={() => setSealModalOpen(true)}
                   className="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center justify-center gap-2"
@@ -322,7 +323,7 @@ export const PlacesPage: React.FC = () => {
                 </button>
               )}
 
-              {permissions.canManagePlaces && (
+              {hasPermission('espaces.update') && (
                 <button
                   onClick={handleSetMaintenance}
                   className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-2xl transition-colors flex items-center justify-center gap-2"

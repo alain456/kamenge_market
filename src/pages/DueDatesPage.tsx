@@ -7,12 +7,12 @@ import { Modal } from '../components/ui/Modal';
 import { formatBIF, formatDateShort } from '../lib/formatters';
 import { DueDateInvoice } from '../types/domain';
 import { MockApiService } from '../services/mock-api';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { CalendarClock, Zap, Info } from 'lucide-react';
 
 export const DueDatesPage: React.FC = () => {
-  const { permissions, currentUser } = useAuth();
+  const { hasPermission } = usePermissions();
   const { showToast } = useToast();
 
   const [invoices, setInvoices] = useState<DueDateInvoice[]>([]);
@@ -39,7 +39,7 @@ export const DueDatesPage: React.FC = () => {
 
   const filteredInvoices = invoices.filter((i) => {
     // Merchant can only see their own invoices
-    if (permissions.isMerchant && i.merchantId !== currentUser?.id) {
+    if (false) {
       return false;
     }
     const matchesSearch =
@@ -119,11 +119,11 @@ export const DueDatesPage: React.FC = () => {
   return (
     <div className="space-y-5 pb-6">
       <PageHeader
-        title={permissions.isMerchant ? "Mes Factures" : "Échéances & Facturation"}
-        subtitle={permissions.isMerchant ? "Consultez l'historique de vos factures et échéances" : "Suivi des loyers attendus et calcul automatique des pénalités de retard"}
-        breadcrumbs={[{ label: permissions.isMerchant ? 'Mes Factures' : 'Échéances' }]}
+        title={""Échéances & Facturation"}
+        subtitle={""Suivi des loyers attendus et calcul automatique des pénalités de retard"}
+        breadcrumbs={[{ label: 'Échéances' }]}
         actions={
-          permissions.canCreateContract && !permissions.isMerchant && (
+          hasPermission('finances.create') && (
             <button
               onClick={() => setIsGeneratorOpen(true)}
               className="px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center gap-2"

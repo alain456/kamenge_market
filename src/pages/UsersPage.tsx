@@ -4,12 +4,12 @@ import { DataTable, Column } from '../components/ui/DataTable';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { User } from '../types/domain';
 import { MockApiService } from '../services/mock-api';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
 import { Shield, UserPlus } from 'lucide-react';
 import { getRoleLabel } from '../lib/permissions';
 
 export const UsersPage: React.FC = () => {
-  const { permissions } = useAuth();
+  const { hasPermission } = usePermissions();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -54,7 +54,7 @@ export const UsersPage: React.FC = () => {
         subtitle="Gestion des comptes du personnel administratif et de leurs rôles"
         breadcrumbs={[{ label: 'Utilisateurs' }]}
         actions={
-          permissions.canManageUsers && (
+          hasPermission('administration.create') && (
             <button
               className="px-4 py-2.5 bg-mint-500 hover:bg-mint-600 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center gap-2"
             >

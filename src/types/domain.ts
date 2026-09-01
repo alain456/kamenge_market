@@ -1,17 +1,14 @@
-export type Role = 
-  | 'ADMIN' 
-  | 'AGENT' 
-  | 'MERCHANT';
-
 export interface User {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
   phone: string;
-  role: Role;
+  roleId: string;
   avatar?: string;
-  status: 'ACTIF' | 'INACTIF';
-  lastLogin: string;
+  status: 'active' | 'inactive';
+  lastLogin?: string;
+  createdAt: string;
+  assignedArea?: string; // used for scoping
 }
 
 export interface Zone {
@@ -226,7 +223,7 @@ export interface DisbursementRequest {
   id: string;
   requestNumber: string;
   applicantName: string;
-  applicantRole: Role;
+  applicantRole: string;
   costCenterName: string;
   amount: number;
   purpose: string;
@@ -242,7 +239,7 @@ export interface AuditLog {
   id: string;
   userId: string;
   userName: string;
-  userRole: Role;
+  userRole: string;
   action: string;
   resource: string;
   oldStatus?: string;

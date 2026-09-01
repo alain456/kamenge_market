@@ -6,13 +6,13 @@ import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatBIF, formatDateShort } from '../lib/formatters';
 import { PaymentSlip } from '../types/domain';
 import { MockApiService } from '../services/mock-api';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { SlipVerifyDrawer } from '../components/domain/SlipVerifyDrawer';
 import { FileSearch } from 'lucide-react';
 
 export const PaymentSlipsPage: React.FC = () => {
-  const { permissions, currentUser } = useAuth();
+  const { hasPermission, currentUser } = usePermissions();
   const { showToast } = useToast();
 
   const [slips, setSlips] = useState<PaymentSlip[]>([]);
@@ -36,10 +36,6 @@ export const PaymentSlipsPage: React.FC = () => {
   };
 
   const filteredSlips = slips.filter((s) => {
-    // Merchant can only see their own slips
-    if (permissions.isMerchant && s.merchantId !== currentUser?.id) {
-      return false;
-    }
     const matchesSearch =
       s.slipNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.merchantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -50,7 +46,7 @@ export const PaymentSlipsPage: React.FC = () => {
 
   const handleVerifySlip = async (id: string, decision: 'APPROUVE' | 'REJETE', comment?: string, rejectionReason?: string) => {
     try {
-      const updated = await MockApiService.verifyPaymentSlip(id, decision, currentUser!.name, comment, rejectionReason);
+      const updated = await MockApiService.verifyPaymentSlip(id, decision, currentUser?.fullName || 'Gestionnaire', comment, rejectionReason);
       setSlips((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
       showToast(`Bordereau ${updated.slipNumber} ${decision === 'APPROUVE' ? 'approuvé' : 'rejeté'} avec succès.`, decision === 'APPROUVE' ? 'success' : 'info');
     } catch (err: any) {
@@ -107,7 +103,7 @@ export const PaymentSlipsPage: React.FC = () => {
           }}
           className="px-3 py-1.5 bg-gray-100 hover:bg-emerald-100 hover:text-emerald-800 text-gray-700 font-bold rounded-xl text-xs flex items-center gap-1 transition-colors"
         >
-          {r.status === 'EN_ATTENTE' && !permissions.isMerchant ? (
+          {r.status === 'EN_ATTENTE' && hasPermission('finances.validate') ? (
             <>
               <span>Vérifier</span>
               <FileSearch className="w-3 h-3" />
@@ -123,9 +119,9 @@ export const PaymentSlipsPage: React.FC = () => {
   return (
     <div className="space-y-5 pb-6">
       <PageHeader
-        title={permissions.isMerchant ? "Mes Bordereaux" : "Vérification des Bordereaux Bancaires"}
-        subtitle={permissions.isMerchant ? "Historique de vos preuves de paiement soumises" : "Contrôle des justificatifs de paiement soumis par les locataires"}
-        breadcrumbs={[{ label: permissions.isMerchant ? "Mes Bordereaux" : 'Bordereaux' }]}
+        title="Vérification des Bordereaux Bancaires"
+        subtitle="Contrôle des justificatifs de paiement soumis par les locataires"
+        breadcrumbs={[{ label: 'Bordereaux' }]}
       />
 
       <FilterBar

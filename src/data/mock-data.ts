@@ -17,38 +17,7 @@ import {
   MarketSettings,
 } from '../types/domain';
 
-export const mockUsers: User[] = [
-  {
-    id: 'u-1',
-    name: 'Jonson Ndayishimiye (Admin)',
-    email: 'admin@kamenge-mall.bi',
-    phone: '+257 79 123 456',
-    role: 'ADMIN',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    status: 'ACTIF',
-    lastLogin: '2026-08-26 10:15',
-  },
-  {
-    id: 'u-2',
-    name: 'Marc Nkurunziza (Agent)',
-    email: 'agent@kamenge-mall.bi',
-    phone: '+257 71 987 654',
-    role: 'AGENT',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    status: 'ACTIF',
-    lastLogin: '2026-08-26 09:30',
-  },
-  {
-    id: 'm-3', // Note: Using the merchant ID from mockMerchants to link them
-    name: 'Gérard Bizimana (Commerçant)',
-    email: 'commercant@kamenge-mall.bi',
-    phone: '+257 71 555 666',
-    role: 'MERCHANT',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-    status: 'ACTIF',
-    lastLogin: '2026-08-26 10:00',
-  },
-];
+export { mockUsersRbac as mockUsers } from './rbac-mock';
 
 export const mockZones: Zone[] = [
   { id: 'z-1', code: 'Z-BLOC-A', name: 'Zone Commerciale Bloc A', description: 'Boutiques principales rez-de-chaussée et étage 1', totalPlaces: 24 },

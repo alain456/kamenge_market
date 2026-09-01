@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, ShieldAlert, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { usePermissions } from '../context/AuthContext';
+import { Lock, Mail, ShieldAlert, ArrowRight } from 'lucide-react';
+import { mockUsersRbac } from '../data/rbac-mock';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = usePermissions();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -136,14 +137,14 @@ export const LoginPage: React.FC = () => {
           <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-left">
             <p className="text-[10px] font-extrabold text-gray-700 mb-2 uppercase tracking-wide">Comptes de test disponibles :</p>
             <ul className="space-y-1.5">
-              <li className="text-[10px] flex items-center justify-between">
-                <span className="font-semibold text-gray-600">Admin</span>
-                <span className="font-mono text-emerald-600 bg-emerald-50 px-1.5 rounded">admin@kamenge-mall.bi</span>
-              </li>
-              <li className="text-[10px] flex items-center justify-between">
-                <span className="font-semibold text-gray-600">Agent</span>
-                <span className="font-mono text-emerald-600 bg-emerald-50 px-1.5 rounded">agent@kamenge-mall.bi</span>
-              </li>
+              {mockUsersRbac.map((user) => (
+                <li key={user.id} className="text-[10px] flex items-center justify-between">
+                  <span className="font-semibold text-gray-600">{user.roleId}</span>
+                  <span className="font-mono text-emerald-600 bg-emerald-50 px-1.5 rounded cursor-pointer hover:bg-emerald-100" onClick={() => setEmail(user.email)}>
+                    {user.email}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

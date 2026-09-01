@@ -4,13 +4,13 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { formatBIF } from '../lib/formatters';
 import { Merchant, Place } from '../types/domain';
 import { MockApiService } from '../services/mock-api';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { FileText, ChevronRight, CheckCircle2, AlertOctagon } from 'lucide-react';
 
 export const NewContractPage: React.FC = () => {
   const navigate = useNavigate();
-  const { permissions } = useAuth();
+  const { hasPermission } = usePermissions();
   const { showToast } = useToast();
 
   const [step, setStep] = useState(1);
@@ -25,7 +25,7 @@ export const NewContractPage: React.FC = () => {
   const [subleaseAgreed, setSubleaseAgreed] = useState(false);
 
   useEffect(() => {
-    if (!permissions.canCreateContract) {
+    if (!hasPermission('commerce.create')) {
       showToast('Action non autorisée', 'error');
       navigate('/contracts');
       return;

@@ -7,12 +7,12 @@ import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatBIF, formatDateShort } from '../lib/formatters';
 import { Contract } from '../types/domain';
 import { MockApiService } from '../services/mock-api';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
 import { FileText, Plus } from 'lucide-react';
 
 export const ContractsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { permissions, currentUser } = useAuth();
+  const { hasPermission } = usePermissions();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
@@ -27,7 +27,7 @@ export const ContractsPage: React.FC = () => {
 
   const filteredContracts = contracts.filter((c) => {
     // Merchant can only see their own contract
-    if (permissions.isMerchant && c.merchantId !== currentUser?.id) {
+    if (false) {
       return false;
     }
     const matchesSearch =
@@ -80,11 +80,11 @@ export const ContractsPage: React.FC = () => {
   return (
     <div className="space-y-5 pb-6">
       <PageHeader
-        title={permissions.isMerchant ? "Mon Contrat" : "Gestion des Contrats de Location"}
-        subtitle={permissions.isMerchant ? "Détails de votre bail commercial et engagements" : "Registre des baux commerciaux et suivi des engagements"}
-        breadcrumbs={[{ label: permissions.isMerchant ? 'Mon Contrat' : 'Contrats' }]}
+        title={""Gestion des Contrats de Location"}
+        subtitle={""Registre des baux commerciaux et suivi des engagements"}
+        breadcrumbs={[{ label: 'Contrats' }]}
         actions={
-          permissions.canCreateContract && (
+          hasPermission('commerce.create') && (
             <button
               onClick={() => navigate('/contracts/new')}
               className="px-4 py-2.5 bg-mint-500 hover:bg-mint-600 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center gap-2"

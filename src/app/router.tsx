@@ -6,33 +6,28 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { PlacesPage } from '../pages/PlacesPage';
 import { MerchantsPage } from '../pages/MerchantsPage';
 import { MerchantDetailPage } from '../pages/MerchantDetailPage';
-import { ContractsPage } from '../pages/ContractsPage';
-import { NewContractPage } from '../pages/NewContractPage';
-import { DueDatesPage } from '../pages/DueDatesPage';
 import { PaymentsPage } from '../pages/PaymentsPage';
-import { PaymentSlipsPage } from '../pages/PaymentSlipsPage';
 import { DisputesPage } from '../pages/DisputesPage';
-import { DisputeDetailPage } from '../pages/DisputeDetailPage';
-import { AccountingPage } from '../pages/AccountingPage';
-import { ReportsPage } from '../pages/ReportsPage';
-import { UsersPage } from '../pages/UsersPage';
-import { AuditLogPage } from '../pages/AuditLogPage';
-import { SettingsPage } from '../pages/SettingsPage';
-import { useAuth } from '../context/AuthContext';
+import { ProtectedRoute } from '../components/auth/ProtectedRoute';
+import { AccessDeniedPage } from '../pages/AccessDeniedPage';
 
-// Protected Route Wrapper
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  return <>{children}</>;
-};
+// Stubs
+import { HRPage } from '../pages/HRPage';
+import { InfraPage } from '../pages/InfraPage';
+import { SecurityPage } from '../pages/SecurityPage';
+import { DocumentsPage } from '../pages/DocumentsPage';
+import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
+import { AdminRolesPage } from '../pages/admin/AdminRolesPage';
+import { AdminPermissionsPage } from '../pages/admin/AdminPermissionsPage';
 
 export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/access-denied',
+    element: <AccessDeniedPage />,
   },
   {
     path: '/',
@@ -44,21 +39,28 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },
-      { path: 'places', element: <PlacesPage /> },
-      { path: 'merchants', element: <MerchantsPage /> },
-      { path: 'merchants/:id', element: <MerchantDetailPage /> },
-      { path: 'contracts', element: <ContractsPage /> },
-      { path: 'contracts/new', element: <NewContractPage /> },
-      { path: 'due-dates', element: <DueDatesPage /> },
-      { path: 'payments', element: <PaymentsPage /> },
-      { path: 'payment-slips', element: <PaymentSlipsPage /> },
-      { path: 'disputes', element: <DisputesPage /> },
-      { path: 'disputes/:id', element: <DisputeDetailPage /> },
-      { path: 'accounting', element: <AccountingPage /> },
-      { path: 'reports', element: <ReportsPage /> },
-      { path: 'users', element: <UsersPage /> },
-      { path: 'audit-log', element: <AuditLogPage /> },
-      { path: 'settings', element: <SettingsPage /> },
+      
+      { path: 'commerce', element: <ProtectedRoute domain="commerce"><MerchantsPage /></ProtectedRoute> },
+      { path: 'commerce/:id', element: <ProtectedRoute domain="commerce"><MerchantDetailPage /></ProtectedRoute> },
+      
+      { path: 'espaces', element: <ProtectedRoute domain="espaces"><PlacesPage /></ProtectedRoute> },
+      
+      { path: 'finances', element: <ProtectedRoute domain="finances"><PaymentsPage /></ProtectedRoute> },
+      
+      { path: 'ressources-humaines', element: <ProtectedRoute domain="rh"><HRPage /></ProtectedRoute> },
+      
+      { path: 'infrastructures', element: <ProtectedRoute domain="infrastructures"><InfraPage /></ProtectedRoute> },
+      
+      { path: 'securite', element: <ProtectedRoute domain="securite"><SecurityPage /></ProtectedRoute> },
+      
+      { path: 'documents', element: <ProtectedRoute domain="documents"><DocumentsPage /></ProtectedRoute> },
+      
+      { path: 'plaintes', element: <ProtectedRoute domain="plaintes"><DisputesPage /></ProtectedRoute> },
+      
+      // Admin section
+      { path: 'administration/utilisateurs', element: <ProtectedRoute permission="rh.validate"><AdminUsersPage /></ProtectedRoute> },
+      { path: 'administration/roles', element: <ProtectedRoute permission="rh.validate"><AdminRolesPage /></ProtectedRoute> },
+      { path: 'administration/permissions', element: <ProtectedRoute permission="rh.validate"><AdminPermissionsPage /></ProtectedRoute> },
     ],
   },
   {

@@ -3,7 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Place, Dispute } from '../../types/domain';
 import { formatBIF } from '../../lib/formatters';
 import { AlertOctagon, Lock, FileText, CheckCircle } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { usePermissions } from '../../context/AuthContext';
 
 interface SealModalProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ export const SealModal: React.FC<SealModalProps> = ({
   place,
   onConfirmSeal,
 }) => {
-  const { permissions } = useAuth();
+  const { hasPermission } = usePermissions();
   const [adminNotes, setAdminNotes] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -47,7 +47,7 @@ export const SealModal: React.FC<SealModalProps> = ({
       subtitle="Fermeture administrative et verrouillage pour impayés répétitions"
       maxWidth="xl"
     >
-      {!permissions.canTriggerSeal ? (
+      {!hasPermission('espaces.delete') ? (
         <div className="p-6 bg-rose-50 text-rose-800 rounded-3xl border border-rose-200 text-center">
           <AlertOctagon className="w-10 h-10 text-rose-600 mx-auto mb-2" />
           <h4 className="font-extrabold text-sm">Action non autorisée pour votre rôle</h4>

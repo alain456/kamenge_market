@@ -1,18 +1,18 @@
 import React from 'react';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Settings, Save, ShieldAlert } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 
 export const SettingsPage: React.FC = () => {
-  const { permissions } = useAuth();
+  const { hasPermission } = usePermissions();
   const { showToast } = useToast();
 
   const handleSave = () => {
     showToast('Paramètres mis à jour (Simulé).', 'success');
   };
 
-  if (!permissions.canEditSettings) {
+  if (!hasPermission('rh.validate')) {
     return (
       <div className="p-8 text-center max-w-lg mx-auto mt-10 bg-white rounded-3xl border border-gray-100 shadow-sm">
         <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto mb-3" />
