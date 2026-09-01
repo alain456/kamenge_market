@@ -144,10 +144,6 @@ export const LoginPage: React.FC = () => {
                 <span className="font-semibold text-gray-600">Agent</span>
                 <span className="font-mono text-emerald-600 bg-emerald-50 px-1.5 rounded">agent@kamenge-mall.bi</span>
               </li>
-              <li className="text-[10px] flex items-center justify-between">
-                <span className="font-semibold text-gray-600">Commerçant</span>
-                <span className="font-mono text-emerald-600 bg-emerald-50 px-1.5 rounded">commercant@kamenge-mall.bi</span>
-              </li>
             </ul>
           </div>
         </div>

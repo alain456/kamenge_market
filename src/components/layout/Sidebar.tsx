@@ -32,9 +32,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true }, // Everyone sees a dashboard
     { to: '/places', label: 'Emplacements', icon: Store, show: permissions.canManagePlaces },
     { to: '/merchants', label: 'Commerçants', icon: Users, show: permissions.canManageMerchants },
-    { to: '/contracts', label: 'Contrats', icon: FileText, show: permissions.canCreateContract || permissions.isMerchant },
+    { to: '/contracts', label: 'Contrats', icon: FileText, show: permissions.canCreateContract },
     { to: '/due-dates', label: 'Échéances', icon: CalendarCheck, show: true },
-    { to: '/payments', label: 'Paiements', icon: CreditCard, show: !permissions.isMerchant },
+    { to: '/payments', label: 'Paiements', icon: CreditCard, show: true },
     { to: '/disputes', label: 'Impayés & Contentieux', icon: AlertOctagon, show: permissions.canViewDisputes },
     { to: '/accounting', label: 'Comptabilité', icon: Calculator, show: permissions.canAccessAccounting },
     { to: '/reports', label: 'Rapports & Stats', icon: BarChart3, show: permissions.canViewReports },

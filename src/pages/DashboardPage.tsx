@@ -61,36 +61,6 @@ export const DashboardPage: React.FC = () => {
 
   const { permissions, currentUser } = useAuth();
 
-  if (permissions.isMerchant) {
-    const merchantDue = mockDisputes.find(d => d.merchantId === currentUser?.id);
-    return (
-      <div className="space-y-5 pb-6">
-        <h2 className="text-xl font-extrabold text-gray-900">Bienvenue, {currentUser?.name}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100/80">
-            <span className="text-[11px] font-semibold text-gray-400 block mb-1">Mon Solde Restant Dû</span>
-            <MoneyDisplay amount={merchantDue?.totalDue || 0} size="xl" className={merchantDue?.totalDue ? "text-rose-600" : "text-gray-900"} />
-            <button
-               onClick={() => navigate('/due-dates')}
-               className="mt-4 w-full px-4 py-2 bg-emerald-50 text-emerald-700 font-bold text-xs rounded-xl hover:bg-emerald-100 transition-colors"
-            >
-              Voir mes factures
-            </button>
-          </div>
-          <div className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100/80">
-            <span className="text-[11px] font-semibold text-gray-400 block mb-1">Déclarer un paiement</span>
-            <p className="text-xs text-gray-600 mb-4 mt-2">Soumettez votre bordereau bancaire pour valider le paiement de vos échéances.</p>
-            <button
-               onClick={() => navigate('/payment-slips')}
-               className="w-full px-4 py-2 bg-mint-500 text-white font-bold text-xs rounded-xl hover:bg-mint-600 transition-colors"
-            >
-              Soumettre un bordereau
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-5 pb-6">

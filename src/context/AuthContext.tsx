@@ -33,6 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = (email: string) => {
     const user = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
     if (user) {
+      if (user.role === 'MERCHANT') return false; // Merchants cannot access web portal
       setCurrentUser(user);
       setCurrentRole(user.role);
       return true;
