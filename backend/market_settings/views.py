@@ -24,7 +24,7 @@ def settings_view(request):
         return Response(serializer.data)
 
     # Write operations require ADMIN role
-    if not request.user.role == 'ADMIN':
+    if not request.user.is_admin:
         return Response(
             {'detail': 'Seul un administrateur peut modifier les paramètres.'},
             status=status.HTTP_403_FORBIDDEN,

@@ -13,4 +13,8 @@ urlpatterns = [
     # User management
     path('users/', views.UserListCreateView.as_view(), name='user_list_create'),
     path('users/<int:pk>/', views.UserDetailView.as_view(), name='user_detail'),
+
+    # Staff roles (dynamic RBAC)
+    path('roles/', views.StaffRoleListCreateView.as_view(), name='role_list_create'),
+    path('roles/<slug:slug>/', views.StaffRoleDetailView.as_view(), name='role_detail'),
 ]

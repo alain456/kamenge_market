@@ -29,7 +29,8 @@ class Command(BaseCommand):
 
         with transaction.atomic():
             self._seed_settings()
-            users = self._seed_users()
+            roles = self._seed_staff_roles()
+            users = self._seed_users(roles)
             zones = self._seed_zones()
             merchants = self._seed_merchants(users)
             places = self._seed_places(zones, merchants)
@@ -96,26 +97,83 @@ class Command(BaseCommand):
         )
         self.stdout.write('  ✓ Settings')
 
+    # ── Staff Roles ───────────────────────────────────────────────────────────
+
+    def _seed_staff_roles(self):
+        from users.models import StaffRole
+        from users.rbac_seed_data import STAFF_ROLES
+
+        roles = {}
+        for data in STAFF_ROLES:
+            slug = data['slug']
+            role, _ = StaffRole.objects.update_or_create(
+                slug=slug,
+                defaults={
+                    'name': data['name'],
+                    'description': data['description'],
+                    'permissions': data['permissions'],
+                    'is_system_role': data['is_system_role'],
+                },
+            )
+            roles[slug] = role
+        self.stdout.write('  ✓ Staff roles')
+        return roles
+
     # ── Users ─────────────────────────────────────────────────────────────────
 
-    def _seed_users(self):
-        from users.models import User
-        data = [
-            dict(email='admin@kamenge-mall.bi', name='Jonson Ndayishimiye', role='ADMIN',
-                 phone='+257 79 123 456', status='ACTIF'),
-            dict(email='agent@kamenge-mall.bi', name='Marc Nkurunziza', role='AGENT',
-                 phone='+257 71 987 654', status='ACTIF'),
-            dict(email='commercant@kamenge-mall.bi', name='Gérard Bizimana', role='MERCHANT',
-                 phone='+257 71 555 666', status='ACTIF'),
-        ]
+    def _seed_users(self, roles):
+        from users.models import User, Role
+        from users.rbac_seed_data import STAFF_USERS
+
         users = {}
-        for d in data:
-            email = d.pop('email')
-            u, created = User.objects.get_or_create(email=email, defaults=d)
-            if created:
-                u.set_password('kamenge2026')
-                u.save()
+        demo_password = 'kamenge2026'
+
+        for d in STAFF_USERS:
+            email = d['email']
+            role_slug = d.pop('role_slug')
+            staff_role = roles[role_slug]
+            legacy_role = Role.ADMIN if role_slug == 'admin' else Role.AGENT
+            u, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'name': d['name'],
+                    'phone': d.get('phone', ''),
+                    'status': d.get('status', 'ACTIF'),
+                    'role': legacy_role,
+                    'staff_role': staff_role,
+                    'assigned_area': d.get('assigned_area', ''),
+                },
+            )
+            if not created:
+                u.name = d['name']
+                u.phone = d.get('phone', '')
+                u.status = d.get('status', 'ACTIF')
+                u.role = legacy_role
+                u.staff_role = staff_role
+                u.assigned_area = d.get('assigned_area', '')
+            u.set_password(demo_password)
+            u.save()
             users[email] = u
+
+        # Merchant portal account (no staff role)
+        merchant_data = dict(
+            name='Gérard Bizimana',
+            role=Role.MERCHANT,
+            phone='+257 71 555 666',
+            status='ACTIF',
+        )
+        merchant, created = User.objects.get_or_create(
+            email='commercant@kamenge-mall.bi',
+            defaults=merchant_data,
+        )
+        if not created:
+            for field, value in merchant_data.items():
+                setattr(merchant, field, value)
+            merchant.staff_role = None
+        merchant.set_password(demo_password)
+        merchant.save()
+        users['commercant@kamenge-mall.bi'] = merchant
+
         self.stdout.write('  ✓ Users (password: kamenge2026)')
         return users
 
