@@ -32,7 +32,7 @@ export const NewContractPage: React.FC = () => {
     }
     MockApiService.getMerchants().then(m => setMerchants(m.filter(x => x.status === 'ACTIF')));
     MockApiService.getPlaces().then(p => setFreePlaces(p.filter(x => x.status === 'LIBRE')));
-  }, [permissions, navigate, showToast]);
+  }, [hasPermission, navigate, showToast]);
 
   const selectedPlace = freePlaces.find((p) => p.id === selectedPlaceId);
   const selectedMerchant = merchants.find((m) => m.id === selectedMerchantId);

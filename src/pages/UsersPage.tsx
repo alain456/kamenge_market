@@ -27,7 +27,7 @@ export const UsersPage: React.FC = () => {
         <div className="flex items-center gap-3">
            <img src={r.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'} alt="" className="w-8 h-8 rounded-full object-cover" />
            <div>
-              <div className="font-extrabold text-gray-900">{r.name}</div>
+              <div className="font-extrabold text-gray-900">{r.fullName}</div>
               <div className="text-[10px] text-gray-500">{r.email}</div>
            </div>
         </div>
@@ -35,7 +35,7 @@ export const UsersPage: React.FC = () => {
     },
     {
       header: 'Rôle',
-      accessor: (r) => <span className="font-bold text-gray-700 bg-gray-100 px-2.5 py-1 rounded-xl text-[11px]">{getRoleLabel(r.role)}</span>,
+      accessor: (r) => <span className="font-bold text-gray-700 bg-gray-100 px-2.5 py-1 rounded-xl text-[11px]">{getRoleLabel(r.roleId)}</span>,
     },
     {
       header: 'Statut',

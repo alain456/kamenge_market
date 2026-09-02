@@ -57,7 +57,7 @@ export const AccountingPage: React.FC = () => {
         purpose: formData.motive,
         costCenterName: formData.category,
         paymentMethod: formData.paymentMethod,
-        applicantName: currentUser!.name,
+        applicantName: currentUser!.fullName,
       });
       setDisbursements([created, ...disbursements]);
       setIsModalOpen(false);
@@ -70,7 +70,7 @@ export const AccountingPage: React.FC = () => {
 
   const handleApprove = async (id: string, decision: 'APPROUVE' | 'REJETE') => {
     try {
-      const updated = await MockApiService.updateDisbursementStatus(id, decision === 'APPROUVE' ? 'Validé' : 'Rejeté', { name: currentUser!.name } as any);
+      const updated = await MockApiService.updateDisbursementStatus(id, decision === 'APPROUVE' ? 'Validé' : 'Rejeté', { fullName: currentUser!.fullName } as any);
       setDisbursements((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
       showToast(`Décaissement ${decision === 'APPROUVE' ? 'approuvé' : 'rejeté'} avec succès.`, decision === 'APPROUVE' ? 'success' : 'info');
     } catch (err: any) {

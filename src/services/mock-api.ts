@@ -12,7 +12,6 @@ import {
   DisbursementRequest,
   AuditLog,
   MarketSettings,
-  Role,
 } from '../types/domain';
 import {
   mockUsers,
@@ -254,9 +253,9 @@ export class MockApiService {
     const oldStatus = disb.status;
     disb.status = newStatus;
 
-    if (newStatus === 'Validé') disb.validatedBy = user.name;
-    if (newStatus === 'Confirmé') disb.confirmedBy = user.name;
-    if (newStatus === 'Approuvé') disb.approvedBy = user.name;
+    if (newStatus === 'Validé') disb.validatedBy = user.fullName;
+    if (newStatus === 'Confirmé') disb.confirmedBy = user.fullName;
+    if (newStatus === 'Approuvé') disb.approvedBy = user.fullName;
     if (newStatus === 'Rejeté') {
       if (!rejectionReason) throw new Error('Un motif est obligatoire pour rejeter une demande de décaissement');
       disb.rejectionReason = rejectionReason;

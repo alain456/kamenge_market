@@ -1,4 +1,4 @@
-import { Role } from '../types/domain';
+export type Role = 'ADMIN' | 'AGENT' | 'MERCHANT' | string;
 
 export interface PermissionConfig {
   isMerchant: boolean;
@@ -95,5 +95,6 @@ export function getRoleLabel(role: Role): string {
     case 'ADMIN': return 'Administrateur';
     case 'AGENT': return 'Agent du marché';
     case 'MERCHANT': return 'Commerçant';
+    default: return role as string;
   }
 }

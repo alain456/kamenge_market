@@ -80,8 +80,8 @@ export const ContractsPage: React.FC = () => {
   return (
     <div className="space-y-5 pb-6">
       <PageHeader
-        title={""Gestion des Contrats de Location"}
-        subtitle={""Registre des baux commerciaux et suivi des engagements"}
+        title="Gestion des Contrats de Location"
+        subtitle="Registre des baux commerciaux et suivi des engagements"
         breadcrumbs={[{ label: 'Contrats' }]}
         actions={
           hasPermission('commerce.create') && (

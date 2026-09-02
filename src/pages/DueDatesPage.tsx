@@ -119,8 +119,8 @@ export const DueDatesPage: React.FC = () => {
   return (
     <div className="space-y-5 pb-6">
       <PageHeader
-        title={""Échéances & Facturation"}
-        subtitle={""Suivi des loyers attendus et calcul automatique des pénalités de retard"}
+        title="Échéances & Facturation"
+        subtitle="Suivi des loyers attendus et calcul automatique des pénalités de retard"
         breadcrumbs={[{ label: 'Échéances' }]}
         actions={
           hasPermission('finances.create') && (
