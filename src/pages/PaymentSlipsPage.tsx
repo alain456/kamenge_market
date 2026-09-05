@@ -5,7 +5,7 @@ import { FilterBar } from '../components/ui/FilterBar';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatBIF, formatDateShort } from '../lib/formatters';
 import { PaymentSlip } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { SlipVerifyDrawer } from '../components/domain/SlipVerifyDrawer';
@@ -29,7 +29,7 @@ export const PaymentSlipsPage: React.FC = () => {
 
   const fetchSlips = () => {
     setIsLoading(true);
-    MockApiService.getPaymentSlips().then((data) => {
+    ApiService.getPaymentSlips().then((data) => {
       setSlips(data);
       setIsLoading(false);
     });
@@ -46,7 +46,7 @@ export const PaymentSlipsPage: React.FC = () => {
 
   const handleVerifySlip = async (id: string, decision: 'APPROUVE' | 'REJETE', comment?: string, rejectionReason?: string) => {
     try {
-      const updated = await MockApiService.verifyPaymentSlip(id, decision, currentUser?.fullName || 'Gestionnaire', comment, rejectionReason);
+      const updated = await ApiService.verifyPaymentSlip(id, decision, currentUser?.fullName || 'Gestionnaire', comment, rejectionReason);
       setSlips((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
       showToast(`Bordereau ${updated.slipNumber} ${decision === 'APPROUVE' ? 'approuvé' : 'rejeté'} avec succès.`, decision === 'APPROUVE' ? 'success' : 'info');
     } catch (err: any) {

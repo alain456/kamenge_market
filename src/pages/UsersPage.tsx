@@ -3,7 +3,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { DataTable, Column } from '../components/ui/DataTable';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { User } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { usePermissions } from '../context/AuthContext';
 import { Shield, UserPlus } from 'lucide-react';
 import { getRoleLabel } from '../lib/permissions';
@@ -14,7 +14,7 @@ export const UsersPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    MockApiService.getUsers().then(data => {
+    ApiService.getUsers().then(data => {
       setUsers(data);
       setIsLoading(false);
     });

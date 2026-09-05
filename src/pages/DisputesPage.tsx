@@ -6,7 +6,7 @@ import { FilterBar } from '../components/ui/FilterBar';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatBIF, formatDateShort } from '../lib/formatters';
 import { Dispute } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { ExternalLink } from 'lucide-react';
 
 export const DisputesPage: React.FC = () => {
@@ -17,7 +17,7 @@ export const DisputesPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    MockApiService.getDisputes().then((data) => {
+    ApiService.getDisputes().then((data) => {
       // Sort by amount due descending by default as per requirements
       setDisputes(data.sort((a, b) => b.totalDue - a.totalDue));
       setIsLoading(false);

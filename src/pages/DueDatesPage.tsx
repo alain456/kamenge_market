@@ -6,7 +6,7 @@ import { StatusBadge } from '../components/ui/StatusBadge';
 import { Modal } from '../components/ui/Modal';
 import { formatBIF, formatDateShort } from '../lib/formatters';
 import { DueDateInvoice } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { CalendarClock, Zap, Info } from 'lucide-react';
@@ -31,7 +31,7 @@ export const DueDatesPage: React.FC = () => {
 
   const fetchInvoices = () => {
     setIsLoading(true);
-    MockApiService.getDueDates().then((data) => {
+    ApiService.getDueDates().then((data) => {
       setInvoices(data);
       setIsLoading(false);
     });
@@ -54,7 +54,7 @@ export const DueDatesPage: React.FC = () => {
   const handleGenerateInvoices = async () => {
     setIsGenerating(true);
     try {
-      const count = await MockApiService.generateMonthlyDueDates(genPeriod);
+      const count = await ApiService.generateMonthlyDueDates(genPeriod);
       showToast(`${count} factures générées pour la période ${genPeriod}.`);
       setIsGeneratorOpen(false);
       fetchInvoices();

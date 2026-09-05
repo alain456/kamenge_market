@@ -3,9 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatBIF } from '../lib/formatters';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { Dispute, ReminderHistoryItem } from '../types/domain';
-import { mockReminders, mockPlaces } from '../data/mock-data';
 import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { SealModal } from '../components/domain/SealModal';
@@ -26,13 +25,13 @@ export const DisputeDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      MockApiService.getDisputes().then((data) => {
+      ApiService.getDisputes().then((data) => {
         const found = data.find(d => d.id === id);
         if (found) {
           setDispute(found);
-          setReminders(mockReminders.filter(r => r.disputeId === found.id));
+          setReminders(found.reminders || []);
         } else {
-          navigate('/disputes');
+          navigate('/plaintes');
         }
       });
     }
@@ -52,7 +51,7 @@ export const DisputeDetailPage: React.FC = () => {
 
   const handleConfirmSeal = async (notes: string) => {
     try {
-      await MockApiService.triggerSealProcedure(dispute.id, dispute.placeId, notes);
+      await ApiService.triggerSealProcedure(dispute.id, dispute.placeId, notes);
       setDispute({ ...dispute, status: 'Procédure Scellé' });
       showToast(`Procédure de scellé exécutée pour le dossier de ${dispute.merchantName}.`, 'info');
     } catch (err: any) {

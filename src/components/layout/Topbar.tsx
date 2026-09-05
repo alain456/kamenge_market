@@ -3,11 +3,8 @@ import {
   Search,
   Bell,
   Menu,
-  ShieldCheck,
-  ChevronDown,
   Moon,
   Sun,
-  UserCog,
 } from 'lucide-react';
 import { usePermissions } from '../../context/AuthContext';
 
@@ -26,12 +23,11 @@ export const Topbar: React.FC<TopbarProps> = ({
   globalSearchQuery = '',
   onSearchChange,
 }) => {
-  const { currentUser, currentRole, roles, switchRole } = usePermissions();
+  const { currentUser, currentRole } = usePermissions();
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
   });
   const [language, setLanguage] = useState<'FR' | 'EN' | 'SW'>('FR');
-  const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
 
   React.useEffect(() => {
     if (theme === 'dark') {
@@ -140,46 +136,6 @@ export const Topbar: React.FC<TopbarProps> = ({
               {lang}
             </button>
           ))}
-        </div>
-
-        {/* Role Switcher Demo */}
-        <div className="relative">
-          <button
-            onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
-            className="p-2.5 bg-white text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-full shadow-xs border border-gray-100 transition-colors relative group"
-            title="Simuler un rôle de démo"
-          >
-            <UserCog className="w-4 h-4" />
-            {/* Tooltip */}
-            <span className="absolute top-10 right-0 w-32 text-[10px] bg-gray-800 text-white p-1 rounded text-center opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
-              Mode démo
-            </span>
-          </button>
-          
-          {showRoleSwitcher && (
-            <div className="absolute right-0 top-12 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="p-3 bg-emerald-50 border-b border-emerald-100">
-                <p className="text-xs font-bold text-emerald-800">Changer de profil (Démo)</p>
-                <p className="text-[10px] text-emerald-600">Simuler une connexion</p>
-              </div>
-              <div className="max-h-64 overflow-y-auto p-2">
-                {roles.map(role => (
-                  <button
-                    key={role.id}
-                    onClick={() => {
-                      switchRole(role.id);
-                      setShowRoleSwitcher(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-colors mb-1 ${
-                      currentRole?.id === role.id ? 'bg-mint-50 text-mint-700 font-bold' : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {role.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Theme Toggle */}

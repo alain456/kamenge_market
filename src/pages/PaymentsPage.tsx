@@ -5,7 +5,7 @@ import { FilterBar } from '../components/ui/FilterBar';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatBIF } from '../lib/formatters';
 import { Payment } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { CreditCard } from 'lucide-react';
 
 export const PaymentsPage: React.FC = () => {
@@ -15,7 +15,7 @@ export const PaymentsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    MockApiService.getPayments().then((data) => {
+    ApiService.getPayments().then((data) => {
       setPayments(data);
       setIsLoading(false);
     });

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatCard } from '../components/ui/StatCard';
 import { MoneyDisplay } from '../components/ui/MoneyDisplay';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatBIF } from '../lib/formatters';
 import { usePermissions } from '../context/AuthContext';
+import { ApiService, DashboardStats, RevenueReport } from '../services/api';
 import {
   Users,
   UserCheck,
@@ -27,65 +28,116 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { mockPlaces, mockPaymentSlips, mockDisputes } from '../data/mock-data';
+import { RoleDashboard } from '../components/dashboard/RoleDashboard';
 
-// --- ADMIN DASHBOARD (Existing layout) ---
+// --- ADMIN DASHBOARD ---
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [revenue, setRevenue] = useState<RevenueReport | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const chartData = [
-    { date: '04 Jan', encaisses: 200, attendus: 300 },
-    { date: '08 Jan', encaisses: 400, attendus: 350 },
-    { date: '12 Jan', encaisses: 380, attendus: 420 },
-    { date: '16 Jan', encaisses: 680, attendus: 500 },
-    { date: '20 Jan', encaisses: 520, attendus: 480 },
-    { date: '26 Jan', encaisses: 710, attendus: 600 },
-    { date: '28 Jan', encaisses: 650, attendus: 580 },
-    { date: '30 Jan', encaisses: 300, attendus: 400 },
-    { date: '31 Jan', encaisses: 450, attendus: 650 },
-  ];
+  useEffect(() => {
+    Promise.all([
+      ApiService.getDashboardStats(),
+      ApiService.getRevenueReport(new Date().getFullYear()),
+    ])
+      .then(([dashboardStats, revenueReport]) => {
+        setStats(dashboardStats);
+        setRevenue(revenueReport);
+        setError(null);
+      })
+      .catch(() => setError('Impossible de charger les statistiques du tableau de bord.'))
+      .finally(() => setIsLoading(false));
+  }, []);
 
-  const pieData = [
-    { name: 'Boutiques', value: 35, color: '#8b5cf6' },
-    { name: 'Kiosques', value: 25, color: '#06b6d4' },
-    { name: 'Stands', value: 25, color: '#3b82f6' },
-    { name: 'Maintenance', value: 15, color: '#2aa848' },
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24 text-gray-400 font-medium">
+        Chargement du tableau de bord...
+      </div>
+    );
+  }
 
-  const priorityUnpaid = [...mockDisputes].sort((a, b) => b.totalDue - a.totalDue);
-  const pendingSlips = mockPaymentSlips.filter((s) => s.status === 'EN_ATTENTE');
+  if (error || !stats) {
+    return (
+      <div className="p-6">
+        <div className="bg-rose-50 border border-rose-200 rounded-3xl p-8 text-center">
+          <p className="text-sm font-bold text-rose-800">{error || 'Données indisponibles'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const chartData = revenue?.monthlyRevenue.map((m) => ({
+    date: m.month,
+    encaisses: m.revenue,
+    attendus: Math.round(m.revenue * 1.1),
+  })) || [];
+
+  const typeColors: Record<string, string> = {
+    Boutique: '#8b5cf6',
+    Kiosque: '#06b6d4',
+    Stand: '#3b82f6',
+    Maintenance: '#2aa848',
+  };
+  const pieData = revenue?.revenueByPlaceType.map((t) => ({
+    name: t.type,
+    value: t.revenue || 1,
+    color: typeColors[t.type] || '#94a3b8',
+  })) || [];
+
+  const priorityUnpaid = stats.priorityUnpaid.map((item) => ({
+    id: String(item.id),
+    merchantName: item.fullName,
+    placeCode: item.placeCode || '—',
+    unpaidMonthsCount: item.unpaidMonthsCount || 0,
+    totalDue: item.amountDue,
+    status: item.status,
+  }));
+
+  const pendingSlips = stats.pendingSlips.map((slip) => ({
+    id: String(slip.id),
+    slipNumber: slip.slipNumber,
+    merchantName: slip.merchantFullName,
+    placeCode: slip.placeCode,
+    declaredAmount: slip.declaredAmount,
+    method: slip.method || 'Virement',
+    status: 'EN_ATTENTE',
+  }));
 
   return (
     <div className="space-y-5 pb-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <StatCard
-            title="35 Nouveaux Locataires"
-            value="35"
-            subtitle="Commerçants inscrits"
-            change="+120"
+            title={`${stats.merchants?.active ?? 0} Commerçants Actifs`}
+            value={String(stats.merchants?.active ?? 0)}
+            subtitle={`${stats.merchants?.total ?? 0} commerçants enregistrés`}
+            change={`${stats.openDisputesCount} litiges`}
             changeType="positive"
             icon={Users}
             iconBgColor="bg-amber-500"
-            periodText="Ce mois"
+            periodText="Temps réel"
             onClick={() => navigate('/commerce')}
           />
           <StatCard
-            title="15 Contrats Résiliés"
-            value="15"
-            subtitle="Locaux libérés"
-            change="-120"
+            title={`${stats.places.libre} Locaux Libres`}
+            value={String(stats.places.libre)}
+            subtitle={`${stats.contracts?.terminated ?? 0} contrats résiliés`}
+            change={`${stats.places.total} emplacements`}
             changeType="negative"
             icon={UserCheck}
             iconBgColor="bg-emerald-500"
-            periodText="Ce mois"
-            onClick={() => navigate('/commerce')}
+            periodText="Temps réel"
+            onClick={() => navigate('/espaces')}
           />
           <StatCard
-            title="22 Bordereaux Validés"
-            value="22"
-            subtitle="Preuves bancaires vérifiées"
-            change="+120"
+            title={`${stats.pendingSlipsCount} Bordereaux en Attente`}
+            value={String(stats.pendingSlipsCount)}
+            subtitle={`${stats.approvedSlipsCount ?? 0} bordereaux validés`}
+            change={`${stats.financials.monthlyRevenueBif > 0 ? 'Encaissements actifs' : 'Aucun encaissement'}`}
             changeType="positive"
             icon={FileCheck}
             iconBgColor="bg-sky-500"
@@ -93,14 +145,14 @@ const AdminDashboard: React.FC = () => {
             onClick={() => navigate('/finances')}
           />
           <StatCard
-            title="35 Emplacements Occupés"
-            value="35"
-            subtitle="Taux d’occupation 85%"
-            change="+120"
+            title={`${stats.places.occupied} Emplacements Occupés`}
+            value={String(stats.places.occupied)}
+            subtitle={`Taux d'occupation ${stats.places.occupancyRatePercent}%`}
+            change={`${stats.places.total} total`}
             changeType="positive"
             icon={Store}
             iconBgColor="bg-purple-500"
-            periodText="Ce mois"
+            periodText="Temps réel"
             onClick={() => navigate('/espaces')}
           />
         </div>
@@ -155,7 +207,7 @@ const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-2">
             <div>
               <h3 className="text-sm font-extrabold text-gray-900">Évolution des Encaissements</h3>
-              <p className="text-[11px] font-semibold text-gray-400">Jan 2026</p>
+              <p className="text-[11px] font-semibold text-gray-400">{revenue?.year || new Date().getFullYear()}</p>
             </div>
             <span className="text-gray-400 text-xs font-bold cursor-pointer">•••</span>
           </div>
@@ -185,7 +237,7 @@ const AdminDashboard: React.FC = () => {
                     if (active && payload && payload.length) {
                       return (
                         <div className="bg-mint-500 text-white font-extrabold text-xs px-3 py-1.5 rounded-full shadow-md">
-                          {payload[0].value} Locataires Payés
+                          {formatBIF(Number(payload[0].value))}
                         </div>
                       );
                     }
@@ -217,17 +269,12 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100/80 flex flex-col justify-between">
             <div>
               <span className="text-[11px] font-semibold text-gray-400 block mb-1">Total Encaissé (Mois)</span>
-              <MoneyDisplay amount={32985000} size="xl" className="text-gray-900" />
+              <MoneyDisplay amount={stats.financials.monthlyRevenueBif} size="xl" className="text-gray-900" />
             </div>
 
             <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center -space-x-2">
-                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" className="w-7 h-7 rounded-full border-2 border-white object-cover" alt="Locataire" />
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" className="w-7 h-7 rounded-full border-2 border-white object-cover" alt="Locataire" />
-                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" className="w-7 h-7 rounded-full border-2 border-white object-cover" alt="Locataire" />
-                <div className="w-7 h-7 rounded-full bg-emerald-500 text-white font-extrabold text-[10px] flex items-center justify-center border-2 border-white">
-                  +8
-                </div>
+              <div className="text-xs font-bold text-gray-500">
+                {stats.staff?.total ?? 0} agents • {stats.openDisputesCount} litiges ouverts
               </div>
 
               <button onClick={() => navigate('/finances')} className="text-xs font-extrabold text-emerald-700 hover:text-emerald-800 flex items-center gap-1">
@@ -240,7 +287,7 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100/80 flex flex-col justify-between">
             <div>
               <span className="text-[11px] font-semibold text-gray-400 block mb-1">Total Impayés & Arriérés</span>
-              <MoneyDisplay amount={4494000} size="xl" className="text-rose-600" />
+              <MoneyDisplay amount={stats.financials.totalArrearsBif} size="xl" className="text-rose-600" />
             </div>
 
             <div className="mt-4 flex items-center justify-between">
@@ -335,50 +382,22 @@ const AdminDashboard: React.FC = () => {
   );
 };
 
-// --- CASHIER DASHBOARD ---
-const CashierDashboard: React.FC = () => {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-black text-gray-900 mb-4">Ma Caisse</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Encaissements du jour" value={formatBIF(850000)} icon={Calculator} iconBgColor="bg-emerald-500" periodText="Aujourd'hui" />
-        <StatCard title="Opérations" value="45" icon={FileText} iconBgColor="bg-sky-500" periodText="Aujourd'hui" />
-      </div>
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80 min-h-[300px] flex items-center justify-center text-gray-400">
-        Historique de caisse et opérations à valider
-      </div>
-    </div>
-  );
-};
-
-// --- GENERIC STUB DASHBOARD ---
-const StubDashboard: React.FC<{ title: string }> = ({ title }) => (
-  <div className="p-6">
-    <h1 className="text-2xl font-black text-gray-900 mb-4">Tableau de bord : {title}</h1>
-    <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/80 min-h-[400px] flex items-center justify-center text-gray-400">
-      Aperçu spécifique pour le rôle {title} en cours de construction...
-    </div>
-  </div>
-);
-
+// --- ROLE DASHBOARDS (non-admin) ---
 
 export const DashboardPage: React.FC = () => {
-  const { currentRole } = usePermissions();
+  const { effectiveRoleId } = usePermissions();
 
-  switch (currentRole?.id) {
-    case 'admin':
-      return <AdminDashboard />;
-    case 'caissier':
-      return <CashierDashboard />;
-    case 'secretaire':
-      return <StubDashboard title="Secrétaire" />;
-    case 'comptable':
-      return <StubDashboard title="Comptable" />;
-    case 'agent_perception':
-      return <StubDashboard title="Agent de Perception" />;
-    case 'agent_enregistrement':
-      return <StubDashboard title="Agent d'enregistrement" />;
-    default:
-      return <AdminDashboard />;
+  if (effectiveRoleId === 'admin') {
+    return <AdminDashboard />;
   }
+
+  if (effectiveRoleId) {
+    return <RoleDashboard />;
+  }
+
+  return (
+    <div className="flex items-center justify-center py-24 text-gray-400 font-medium">
+      Chargement du profil...
+    </div>
+  );
 };

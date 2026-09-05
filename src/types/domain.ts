@@ -155,6 +155,7 @@ export interface Dispute {
   lastReminderDate: string;
   riskLevel: DisputeRisk;
   status: 'Dossier Ouvert' | 'Relance J-5' | 'Mise en demeure' | 'Procédure Scellé' | 'Régularisé';
+  reminders?: ReminderHistoryItem[];
 }
 
 export interface ReminderHistoryItem {
@@ -246,6 +247,7 @@ export interface AuditLog {
   newStatus?: string;
   timestamp: string;
   ipAddress: string;
+  level?: 'INFO' | 'ALERTE' | 'CRITIQUE';
   details?: string;
 }
 

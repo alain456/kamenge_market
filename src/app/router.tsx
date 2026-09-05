@@ -11,6 +11,16 @@ import { DisputesPage } from '../pages/DisputesPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { AccessDeniedPage } from '../pages/AccessDeniedPage';
 
+import { ContractsPage } from '../pages/ContractsPage';
+import { DueDatesPage } from '../pages/DueDatesPage';
+import { PaymentSlipsPage } from '../pages/PaymentSlipsPage';
+import { AccountingPage } from '../pages/AccountingPage';
+import { UsersPage } from '../pages/UsersPage';
+import { ReportsPage } from '../pages/ReportsPage';
+import { SettingsPage } from '../pages/SettingsPage';
+import { NewContractPage } from '../pages/NewContractPage';
+import { AuditLogPage } from '../pages/AuditLogPage';
+
 // Stubs
 import { HRPage } from '../pages/HRPage';
 import { InfraPage } from '../pages/InfraPage';
@@ -46,6 +56,13 @@ export const router = createBrowserRouter([
       { path: 'espaces', element: <ProtectedRoute domain="espaces"><PlacesPage /></ProtectedRoute> },
       
       { path: 'finances', element: <ProtectedRoute domain="finances"><PaymentsPage /></ProtectedRoute> },
+      { path: 'finances/echeances', element: <ProtectedRoute domain="finances"><DueDatesPage /></ProtectedRoute> },
+      { path: 'finances/bordereaux', element: <ProtectedRoute domain="finances"><PaymentSlipsPage /></ProtectedRoute> },
+      { path: 'finances/comptabilite', element: <ProtectedRoute domain="finances"><AccountingPage /></ProtectedRoute> },
+      { path: 'finances/rapports', element: <ProtectedRoute domain="finances"><ReportsPage /></ProtectedRoute> },
+
+      { path: 'contrats', element: <ProtectedRoute domain="commerce"><ContractsPage /></ProtectedRoute> },
+      { path: 'contrats/nouveau', element: <ProtectedRoute domain="commerce"><NewContractPage /></ProtectedRoute> },
       
       { path: 'ressources-humaines', element: <ProtectedRoute domain="rh"><HRPage /></ProtectedRoute> },
       
@@ -57,10 +74,13 @@ export const router = createBrowserRouter([
       
       { path: 'plaintes', element: <ProtectedRoute domain="plaintes"><DisputesPage /></ProtectedRoute> },
       
-      // Admin section
-      { path: 'administration/utilisateurs', element: <ProtectedRoute permission="rh.validate"><AdminUsersPage /></ProtectedRoute> },
-      { path: 'administration/roles', element: <ProtectedRoute permission="rh.validate"><AdminRolesPage /></ProtectedRoute> },
-      { path: 'administration/permissions', element: <ProtectedRoute permission="rh.validate"><AdminPermissionsPage /></ProtectedRoute> },
+      // Admin section — réservée au rôle admin (aligné avec l'API backend)
+      { path: 'administration/utilisateurs', element: <ProtectedRoute requireAdmin><AdminUsersPage /></ProtectedRoute> },
+      { path: 'administration/utilisateurs-api', element: <ProtectedRoute requireAdmin><UsersPage /></ProtectedRoute> },
+      { path: 'administration/audit', element: <ProtectedRoute requireAdmin><AuditLogPage /></ProtectedRoute> },
+      { path: 'administration/parametres', element: <ProtectedRoute requireAdmin><SettingsPage /></ProtectedRoute> },
+      { path: 'administration/roles', element: <ProtectedRoute requireAdmin><AdminRolesPage /></ProtectedRoute> },
+      { path: 'administration/permissions', element: <ProtectedRoute requireAdmin><AdminPermissionsPage /></ProtectedRoute> },
     ],
   },
   {

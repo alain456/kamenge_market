@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../context/AuthContext';
 import { Lock, Mail, ShieldAlert, ArrowRight } from 'lucide-react';
-import { mockUsersRbac } from '../data/rbac-mock';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,20 +13,17 @@ export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage('');
-
-    setTimeout(() => {
-      setIsLoading(false);
-      const success = login(email);
-      if (success) {
-        navigate('/dashboard');
-      } else {
-        setErrorMessage('Identifiants incorrects ou compte inactif');
-      }
-    }, 600);
+    const result = await login(email, password);
+    setIsLoading(false);
+    if (result.ok) {
+      navigate('/dashboard');
+    } else {
+      setErrorMessage(result.error || 'Identifiants incorrects. Vérifiez votre email et mot de passe.');
+    }
   };
 
   return (
@@ -137,15 +133,23 @@ export const LoginPage: React.FC = () => {
           <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-left">
             <p className="text-[10px] font-extrabold text-gray-700 mb-2 uppercase tracking-wide">Comptes de test disponibles :</p>
             <ul className="space-y-1.5">
-              {mockUsersRbac.map((user) => (
-                <li key={user.id} className="text-[10px] flex items-center justify-between">
-                  <span className="font-semibold text-gray-600">{user.roleId}</span>
-                  <span className="font-mono text-emerald-600 bg-emerald-50 px-1.5 rounded cursor-pointer hover:bg-emerald-100" onClick={() => setEmail(user.email)}>
-                    {user.email}
+              {[
+                { role: 'Admin', email: 'admin@kamenge-mall.bi', password: 'kamenge2026' },
+                
+              ].map((u) => (
+                <li key={u.email} className="text-[10px] flex items-center justify-between">
+                  <span className="font-semibold text-gray-600">{u.role}</span>
+                  <span
+                    className="font-mono text-emerald-600 bg-emerald-50 px-1.5 rounded cursor-pointer hover:bg-emerald-100"
+                    onClick={() => { setEmail(u.email); setPassword(u.password); }}
+                    title="Cliquer pour pré-remplir"
+                  >
+                    {u.email}
                   </span>
                 </li>
               ))}
             </ul>
+            <p className="text-[9px] text-gray-400 mt-2">💡 Cliquez sur un email pour pré-remplir les identifiants.</p>
           </div>
         </div>
       </div>

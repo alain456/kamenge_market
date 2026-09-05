@@ -6,7 +6,7 @@ import { StatusBadge } from '../components/ui/StatusBadge';
 import { Modal } from '../components/ui/Modal';
 import { formatBIF, formatDateShort } from '../lib/formatters';
 import { DisbursementRequest as Disbursement } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { Calculator, Plus, CheckCircle, XCircle } from 'lucide-react';
@@ -35,7 +35,7 @@ export const AccountingPage: React.FC = () => {
 
   const fetchDisbursements = () => {
     setIsLoading(true);
-    MockApiService.getDisbursements().then((data) => {
+    ApiService.getDisbursements().then((data) => {
       setDisbursements(data);
       setIsLoading(false);
     });
@@ -52,12 +52,9 @@ export const AccountingPage: React.FC = () => {
   const handleCreateDisbursement = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await (MockApiService as any).createDisbursement({
+      const created = await ApiService.createDisbursement({
         amount: formData.amount,
         purpose: formData.motive,
-        costCenterName: formData.category,
-        paymentMethod: formData.paymentMethod,
-        applicantName: currentUser!.fullName,
       });
       setDisbursements([created, ...disbursements]);
       setIsModalOpen(false);
@@ -70,7 +67,7 @@ export const AccountingPage: React.FC = () => {
 
   const handleApprove = async (id: string, decision: 'APPROUVE' | 'REJETE') => {
     try {
-      const updated = await MockApiService.updateDisbursementStatus(id, decision === 'APPROUVE' ? 'Validé' : 'Rejeté', { fullName: currentUser!.fullName } as any);
+      const updated = await ApiService.updateDisbursementStatus(id, decision === 'APPROUVE' ? 'Validé' : 'Rejeté', { fullName: currentUser!.fullName } as any);
       setDisbursements((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
       showToast(`Décaissement ${decision === 'APPROUVE' ? 'approuvé' : 'rejeté'} avec succès.`, decision === 'APPROUVE' ? 'success' : 'info');
     } catch (err: any) {

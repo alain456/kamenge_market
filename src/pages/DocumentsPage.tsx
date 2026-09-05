@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { usePermissions } from '../context/AuthContext';
+import React, { useState, useEffect } from 'react';
 import { PermissionGate } from '../components/auth/PermissionGate';
-import { FileText, Download, Upload, Eye, Trash2, Search, Filter, File, FilePlus } from 'lucide-react';
+import { ApiService } from '../services/api';
+import { FileText, Download, Upload, Eye, Trash2, Search, File, Loader2 } from 'lucide-react';
 
 interface Document {
   id: string;
@@ -13,15 +13,6 @@ interface Document {
   isConfidential: boolean;
 }
 
-const mockDocuments: Document[] = [
-  { id: 'd-1', name: 'Contrat_Bail_MALL-N1-A01_2026.pdf', category: 'contrat', size: '245 Ko', uploadedBy: 'Jean Hakizimana', uploadedAt: '2026-08-15', isConfidential: false },
-  { id: 'd-2', name: 'Rapport_Financier_Août_2026.xlsx', category: 'rapport', size: '1.2 Mo', uploadedBy: 'Diane Irakoze', uploadedAt: '2026-09-01', isConfidential: true },
-  { id: 'd-3', name: 'Facture_Prestataire_Nettoyage.pdf', category: 'facture', size: '88 Ko', uploadedBy: 'Alice Ndayizeye', uploadedAt: '2026-08-28', isConfidential: false },
-  { id: 'd-4', name: 'PV_Reunion_Direction_Aout.docx', category: 'administratif', size: '120 Ko', uploadedBy: 'Alice Ndayizeye', uploadedAt: '2026-08-30', isConfidential: true },
-  { id: 'd-5', name: 'Liste_Commerçants_Actifs.xlsx', category: 'administratif', size: '320 Ko', uploadedBy: 'Jean Hakizimana', uploadedAt: '2026-08-20', isConfidential: false },
-  { id: 'd-6', name: 'Règlement_Intérieur_Marché.pdf', category: 'administratif', size: '560 Ko', uploadedBy: 'Alice Ndayizeye', uploadedAt: '2026-07-01', isConfidential: false },
-];
-
 const catColors: Record<string, string> = {
   contrat: 'bg-mint-100 text-mint-700',
   facture: 'bg-amber-100 text-amber-700',
@@ -31,51 +22,90 @@ const catColors: Record<string, string> = {
 };
 
 export const DocumentsPage: React.FC = () => {
-  const { hasPermission } = usePermissions();
-  const [documents, setDocuments] = useState<Document[]>(mockDocuments);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('ALL');
-  const [toast, setToast] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+  useEffect(() => {
+    Promise.all([
+      ApiService.getContracts(),
+      ApiService.getPaymentSlips(),
+      ApiService.getDisbursements(),
+    ])
+      .then(([contracts, slips, disbursements]) => {
+        const docs: Document[] = [
+          ...contracts.map((c) => ({
+            id: `contract-${c.id}`,
+            name: `Contrat ${c.code}`,
+            category: 'contrat' as const,
+            size: '—',
+            uploadedBy: c.merchantName || 'Système',
+            uploadedAt: c.startDate,
+            isConfidential: false,
+          })),
+          ...slips.map((s) => ({
+            id: `slip-${s.id}`,
+            name: `Bordereau ${s.slipNumber}`,
+            category: 'facture' as const,
+            size: s.fileSize || '—',
+            uploadedBy: s.merchantName || 'Commerçant',
+            uploadedAt: s.submissionDate,
+            isConfidential: false,
+          })),
+          ...disbursements.map((d) => ({
+            id: `disb-${d.id}`,
+            name: `Décaissement ${d.requestNumber}`,
+            category: 'administratif' as const,
+            size: '—',
+            uploadedBy: d.applicantName || 'Agent',
+            uploadedAt: d.createdAt,
+            isConfidential: true,
+          })),
+        ];
+        setDocuments(docs.sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt)));
+      })
+      .catch(() => setDocuments([]))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleDelete = (id: string) => {
-    setDocuments(prev => prev.filter(d => d.id !== id));
-    showToast('Document supprimé');
-  };
-
-  const filtered = documents.filter(d =>
+  const filtered = documents.filter((d) =>
     (selectedCat === 'ALL' || d.category === selectedCat) &&
     d.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const categories = ['ALL', 'contrat', 'facture', 'rapport', 'administratif'];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24 text-gray-400 gap-2">
+        <Loader2 className="w-5 h-5 animate-spin" />
+        <span className="text-sm font-medium">Chargement des documents...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 relative">
-      {toast && (
-        <div className="fixed top-24 right-8 bg-gray-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 z-50">
-          <FileText className="w-4 h-4 text-mint-400" /><span className="text-xs font-bold">{toast}</span>
-        </div>
-      )}
-
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-black text-gray-900 mb-1">Gestion des Documents</h1>
-          <p className="text-xs font-medium text-gray-500">{documents.length} documents archivés</p>
+          <p className="text-xs font-medium text-gray-500">{documents.length} documents issus des contrats, bordereaux et décaissements</p>
         </div>
         <PermissionGate permission="documents.create">
-          <button onClick={() => showToast('Téléversement de document (simulation)')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-2xl text-xs shadow-sm">
+          <button
+            disabled
+            className="flex items-center gap-2 px-5 py-2.5 bg-gray-300 text-white font-bold rounded-2xl text-xs shadow-sm cursor-not-allowed"
+            title="Téléversement à venir"
+          >
             <Upload className="w-4 h-4" />
             Téléverser un document
           </button>
         </PermissionGate>
       </div>
 
-      {/* Category filter pills */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {categories.map(cat => (
+        {categories.map((cat) => (
           <button key={cat} onClick={() => setSelectedCat(cat)}
             className={`text-xs font-bold px-4 py-1.5 rounded-full transition-colors ${selectedCat === cat ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
             {cat === 'ALL' ? 'Tous' : cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -83,61 +113,41 @@ export const DocumentsPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Search */}
       <div className="relative mb-5">
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un document..."
+        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un document..."
           className="w-full bg-white rounded-2xl py-3 pl-10 pr-4 text-xs font-bold text-gray-800 placeholder-gray-400 shadow-xs border border-gray-100 focus:outline-none focus:ring-2 focus:ring-mint-500/40" />
         <Search className="w-4 h-4 text-gray-400 absolute left-4 top-3.5" />
       </div>
 
-      {/* Documents Grid */}
-      <div className="bg-white rounded-3xl shadow-xs border border-gray-100 overflow-hidden">
-        <div className="divide-y divide-gray-50">
-          {filtered.map(doc => (
-            <div key={doc.id} className="flex items-center gap-4 p-4 hover:bg-gray-50/60 transition-colors">
-              <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center shrink-0">
-                <File className="w-5 h-5 text-gray-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-bold text-gray-900 truncate max-w-xs">{doc.name}</p>
-                  {doc.isConfidential && (
-                    <span className="text-[10px] font-bold bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full">Confidentiel</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${catColors[doc.category]}`}>
-                    {doc.category}
-                  </span>
-                  <span className="text-[11px] text-gray-400 font-medium">{doc.size} • {doc.uploadedAt} • par {doc.uploadedBy}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button onClick={() => showToast(`Ouverture de "${doc.name}" (simulation)`)}
-                  className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors" title="Voir">
-                  <Eye className="w-4 h-4" />
-                </button>
-                <button onClick={() => showToast(`Téléchargement de "${doc.name}" (simulation)`)}
-                  className="p-2 text-gray-400 hover:text-mint-600 hover:bg-mint-50 rounded-xl transition-colors" title="Télécharger">
-                  <Download className="w-4 h-4" />
-                </button>
-                <PermissionGate permission="documents.delete">
-                  <button onClick={() => handleDelete(doc.id)}
-                    className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors" title="Supprimer">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </PermissionGate>
-              </div>
-            </div>
-          ))}
-          {filtered.length === 0 && (
-            <div className="text-center py-12 text-gray-400 font-medium text-sm flex flex-col items-center gap-2">
-              <FilePlus className="w-8 h-8 text-gray-200" />
-              Aucun document trouvé
-            </div>
-          )}
+      {filtered.length === 0 ? (
+        <div className="bg-white rounded-3xl p-12 text-center text-gray-400 font-medium text-sm border border-gray-100">
+          Aucun document trouvé.
         </div>
-      </div>
+      ) : (
+        <div className="bg-white rounded-3xl shadow-xs border border-gray-100 overflow-hidden">
+          <div className="divide-y divide-gray-50">
+            {filtered.map((doc) => (
+              <div key={doc.id} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50/60 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
+                    <File className="w-4 h-4 text-gray-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-gray-900 truncate">{doc.name}</p>
+                    <p className="text-[10px] text-gray-400 font-medium">{doc.uploadedBy} • {doc.uploadedAt}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${catColors[doc.category]}`}>{doc.category}</span>
+                  {doc.isConfidential && <span className="text-[10px] font-bold text-rose-600">Confidentiel</span>}
+                  <button className="p-1.5 text-gray-400 hover:text-gray-700" title="Voir"><Eye className="w-4 h-4" /></button>
+                  <button className="p-1.5 text-gray-400 hover:text-gray-700" title="Télécharger"><Download className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../context/AuthContext';
 import { PermissionGate } from '../components/auth/PermissionGate';
-import { Zap, Droplets, Wifi, Wrench, AlertTriangle, CheckCircle, Clock, Plus } from 'lucide-react';
+import { ApiService } from '../services/api';
+import { Place } from '../types/domain';
+import { Zap, Droplets, Wifi, Wrench, AlertTriangle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 
 interface MaintenanceTicket {
   id: string;
@@ -11,16 +13,29 @@ interface MaintenanceTicket {
   priority: 'low' | 'medium' | 'high' | 'critical';
   status: 'open' | 'in_progress' | 'resolved';
   reportedDate: string;
-  resolvedDate?: string;
+  placeStatus: string;
 }
 
-const mockTickets: MaintenanceTicket[] = [
-  { id: 't-1', title: 'Panne électrique Bloc A niveau 2', location: 'Z-BLOC-A / MALL-N2-A04', type: 'electrical', priority: 'critical', status: 'in_progress', reportedDate: '2026-08-30' },
-  { id: 't-2', title: 'Fuite d\'eau dans les sanitaires', location: 'Z-PARKING / Toilettes', type: 'plumbing', priority: 'high', status: 'open', reportedDate: '2026-08-31' },
-  { id: 't-3', title: 'Réseau WiFi lent au niveau 1', location: 'Z-BLOC-B / Couloir', type: 'network', priority: 'medium', status: 'open', reportedDate: '2026-09-01' },
-  { id: 't-4', title: 'Porte automatique en panne', location: 'Entrée principale', type: 'general', priority: 'high', status: 'resolved', reportedDate: '2026-08-28', resolvedDate: '2026-08-29' },
-  { id: 't-5', title: 'Climatiseur hors service', location: 'Bureau Administration', type: 'electrical', priority: 'medium', status: 'in_progress', reportedDate: '2026-08-29' },
-];
+function placesToTickets(places: Place[]): MaintenanceTicket[] {
+  return places
+    .filter((p) => ['MAINTENANCE', 'IMPAYE', 'SCELLE', 'PREUVE_EN_ATTENTE'].includes(p.status))
+    .map((p) => ({
+      id: p.id,
+      title: p.status === 'MAINTENANCE'
+        ? `Maintenance — ${p.code}`
+        : p.status === 'SCELLE'
+          ? `Scellé — ${p.code}`
+          : p.status === 'IMPAYE'
+            ? `Impayé — ${p.code}`
+            : `Preuve en attente — ${p.code}`,
+      location: `${p.zoneName} / ${p.code}`,
+      type: p.status === 'MAINTENANCE' ? 'electrical' : 'general',
+      priority: p.status === 'SCELLE' ? 'critical' : p.status === 'IMPAYE' ? 'high' : 'medium',
+      status: p.status === 'MAINTENANCE' ? 'in_progress' : 'open',
+      reportedDate: p.lastDueDate || '—',
+      placeStatus: p.status,
+    }));
+}
 
 const typeConfig: Record<string, { icon: React.FC<any>; color: string; label: string }> = {
   electrical: { icon: Zap, color: 'text-amber-500 bg-amber-50', label: 'Électricité' },
@@ -41,19 +56,39 @@ const statusConfig: Record<string, { icon: React.FC<any>; color: string; label: 
 };
 
 export const InfraPage: React.FC = () => {
-  const { hasPermission } = usePermissions();
-  const [tickets, setTickets] = useState<MaintenanceTicket[]>(mockTickets);
+  const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
+  const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
-  const handleResolve = (id: string) => {
-    setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'resolved', resolvedDate: new Date().toISOString().split('T')[0] } : t));
-    showToast('Ticket marqué comme résolu');
+  useEffect(() => {
+    ApiService.getPlaces()
+      .then((places) => setTickets(placesToTickets(places)))
+      .catch(() => showToast('Erreur de chargement des emplacements'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleResolve = async (ticket: MaintenanceTicket) => {
+    try {
+      await ApiService.updatePlaceStatus(ticket.id, 'LIBRE', 'Maintenance terminée');
+      setTickets((prev) => prev.filter((t) => t.id !== ticket.id));
+      showToast('Emplacement remis en service');
+    } catch {
+      showToast('Impossible de mettre à jour le statut');
+    }
   };
 
-  const openTickets = tickets.filter(t => t.status !== 'resolved');
-  const resolvedTickets = tickets.filter(t => t.status === 'resolved');
+  const openTickets = tickets.filter((t) => t.status !== 'resolved');
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24 text-gray-400 gap-2">
+        <Loader2 className="w-5 h-5 animate-spin" />
+        <span className="text-sm font-medium">Chargement des incidents...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 relative">
@@ -66,82 +101,78 @@ export const InfraPage: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-black text-gray-900 mb-1">Infrastructures & Maintenance</h1>
-          <p className="text-xs font-medium text-gray-500">{openTickets.length} tickets ouverts — {resolvedTickets.length} résolus</p>
+          <p className="text-xs font-medium text-gray-500">{openTickets.length} emplacements nécessitant une intervention</p>
         </div>
-        <PermissionGate permission="infrastructures.create">
-          <button
-            onClick={() => showToast('Formulaire de signalement (simulation)')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-2xl text-xs shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Signaler un incident
-          </button>
-        </PermissionGate>
       </div>
 
-      {/* KPI Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {Object.entries(typeConfig).map(([type, conf]) => {
-          const Icon = conf.icon;
-          const count = tickets.filter(t => t.type === type).length;
-          return (
-            <div key={type} className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100 flex items-center gap-4">
-              <div className={`w-10 h-10 ${conf.color} rounded-2xl flex items-center justify-center shrink-0`}>
-                <Icon className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase">{conf.label}</p>
-                <p className="text-xl font-black text-gray-900">{count}</p>
-              </div>
+        {[
+          { label: 'Maintenance', filter: 'MAINTENANCE', icon: Wrench, color: 'bg-amber-500' },
+          { label: 'Impayés', filter: 'IMPAYE', icon: AlertTriangle, color: 'bg-rose-500' },
+          { label: 'Scellés', filter: 'SCELLE', icon: Zap, color: 'bg-purple-500' },
+          { label: 'Preuves en attente', filter: 'PREUVE_EN_ATTENTE', icon: Clock, color: 'bg-sky-500' },
+        ].map(({ label, filter, icon: Icon, color }) => (
+          <div key={label} className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100 flex items-center gap-4">
+            <div className={`w-10 h-10 ${color} rounded-2xl flex items-center justify-center shrink-0`}>
+              <Icon className="w-5 h-5 text-white" />
             </div>
-          );
-        })}
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase">{label}</p>
+              <p className="text-xl font-black text-gray-900">{tickets.filter((t) => t.placeStatus === filter).length}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Tickets Grid */}
-      <div className="space-y-3">
-        {tickets.map(ticket => {
-          const TypeIcon = typeConfig[ticket.type].icon;
-          const StatusIcon = statusConfig[ticket.status].icon;
-          return (
-            <div key={ticket.id} className={`bg-white rounded-3xl p-5 shadow-xs border transition-colors ${ticket.status === 'resolved' ? 'border-emerald-100 opacity-70' : 'border-gray-100'}`}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className={`w-9 h-9 ${typeConfig[ticket.type].color} rounded-2xl flex items-center justify-center shrink-0 mt-0.5`}>
-                    <TypeIcon className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-black text-gray-900 truncate">{ticket.title}</h3>
-                    <p className="text-xs text-gray-500 font-medium">{ticket.location}</p>
-                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${priorityColors[ticket.priority]}`}>
-                        {ticket.priority.toUpperCase()}
-                      </span>
-                      <span className="text-[10px] text-gray-400 font-medium">Signalé le {ticket.reportedDate}</span>
+      {tickets.length === 0 ? (
+        <div className="bg-white rounded-3xl p-12 text-center text-gray-400 font-medium text-sm border border-gray-100">
+          Aucun incident d'infrastructure signalé pour le moment.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {tickets.map((ticket) => {
+            const TypeIcon = typeConfig[ticket.type].icon;
+            const StatusIcon = statusConfig[ticket.status].icon;
+            return (
+              <div key={ticket.id} className="bg-white rounded-3xl p-5 shadow-xs border border-gray-100">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className={`w-9 h-9 ${typeConfig[ticket.type].color} rounded-2xl flex items-center justify-center shrink-0 mt-0.5`}>
+                      <TypeIcon className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-black text-gray-900 truncate">{ticket.title}</h3>
+                      <p className="text-xs text-gray-500 font-medium">{ticket.location}</p>
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${priorityColors[ticket.priority]}`}>
+                          {ticket.priority.toUpperCase()}
+                        </span>
+                        <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{ticket.placeStatus}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <div className={`flex items-center gap-1.5 text-xs font-bold ${statusConfig[ticket.status].color}`}>
-                    <StatusIcon className="w-4 h-4" />
-                    <span>{statusConfig[ticket.status].label}</span>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <div className={`flex items-center gap-1.5 text-xs font-bold ${statusConfig[ticket.status].color}`}>
+                      <StatusIcon className="w-4 h-4" />
+                      <span>{statusConfig[ticket.status].label}</span>
+                    </div>
+                    {ticket.placeStatus === 'MAINTENANCE' && (
+                      <PermissionGate permission="infrastructures.validate">
+                        <button
+                          onClick={() => handleResolve(ticket)}
+                          className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-xl transition-colors"
+                        >
+                          Marquer résolu
+                        </button>
+                      </PermissionGate>
+                    )}
                   </div>
-                  {ticket.status !== 'resolved' && (
-                    <PermissionGate permission="infrastructures.validate">
-                      <button
-                        onClick={() => handleResolve(ticket.id)}
-                        className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-xl transition-colors"
-                      >
-                        Marquer résolu
-                      </button>
-                    </PermissionGate>
-                  )}
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

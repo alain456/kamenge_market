@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PlaceStatusLegend } from '../components/domain/PlaceStatusLegend';
@@ -9,9 +9,8 @@ import { SealModal } from '../components/domain/SealModal';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { formatBIF } from '../lib/formatters';
-import { mockPlaces, mockZones } from '../data/mock-data';
-import { Place, PlaceStatus, PlaceType } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { Place, PlaceStatus, PlaceType, Zone } from '../types/domain';
+import { ApiService } from '../services/api';
 import { usePermissions } from '../context/AuthContext';
 import { PermissionGate } from '../components/auth/PermissionGate';
 import { useToast } from '../components/ui/Toast';
@@ -22,7 +21,9 @@ export const PlacesPage: React.FC = () => {
   const { hasPermission } = usePermissions();
   const { showToast } = useToast();
 
-  const [places, setPlaces] = useState<Place[]>(mockPlaces);
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedZone, setSelectedZone] = useState('ALL');
@@ -38,6 +39,16 @@ export const PlacesPage: React.FC = () => {
   // Release confirmation dialog
   const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
 
+  useEffect(() => {
+    Promise.all([ApiService.getPlaces(), ApiService.getZones()])
+      .then(([placesData, zonesData]) => {
+        setPlaces(placesData);
+        if (zonesData.length > 0) setZones(zonesData);
+      })
+      .catch(() => showToast('Impossible de charger les emplacements', 'error'))
+      .finally(() => setIsLoading(false));
+  }, []);
+
   // Filtering places logic
   const filteredPlaces = places.filter((p) => {
     const matchesSearch =
@@ -52,7 +63,7 @@ export const PlacesPage: React.FC = () => {
   const handleReleasePlace = async () => {
     if (!selectedPlace) return;
     try {
-      const updated = await MockApiService.updatePlaceStatus(selectedPlace.id, 'LIBRE');
+      const updated = await ApiService.updatePlaceStatus(selectedPlace.id, 'LIBRE');
       setPlaces((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
       setSelectedPlace(updated);
       showToast(`L'emplacement ${updated.code} est désormais LIBRE.`);
@@ -65,7 +76,7 @@ export const PlacesPage: React.FC = () => {
     if (!selectedPlace) return;
     try {
       const newSt: PlaceStatus = selectedPlace.status === 'MAINTENANCE' ? 'LIBRE' : 'MAINTENANCE';
-      const updated = await MockApiService.updatePlaceStatus(selectedPlace.id, newSt, 'Passé en maintenance par l’administrateur');
+      const updated = await ApiService.updatePlaceStatus(selectedPlace.id, newSt, 'Passé en maintenance par l’administrateur');
       setPlaces((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
       setSelectedPlace(updated);
       showToast(`Statut de ${updated.code} mis à jour.`);
@@ -77,8 +88,8 @@ export const PlacesPage: React.FC = () => {
   const handleConfirmSeal = async (notes: string) => {
     if (!selectedPlace) return;
     try {
-      await MockApiService.triggerSealProcedure('', selectedPlace.id, notes);
-      const updated = await MockApiService.updatePlaceStatus(selectedPlace.id, 'SCELLE', notes);
+      await ApiService.triggerSealProcedure('', selectedPlace.id, notes);
+      const updated = await ApiService.updatePlaceStatus(selectedPlace.id, 'SCELLE', notes);
       setPlaces((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
       setSelectedPlace(updated);
       showToast(`Procédure de scellé exécutée pour ${updated.code}.`, 'info');
@@ -142,7 +153,7 @@ export const PlacesPage: React.FC = () => {
             className="bg-gray-50 rounded-2xl py-2 px-3 text-xs font-bold text-gray-700 border border-gray-200"
           >
             <option value="ALL">Toutes les Zones</option>
-            {mockZones.map((z) => (
+            {zones.map((z) => (
               <option key={z.id} value={z.id}>
                 {z.name}
               </option>
@@ -201,7 +212,9 @@ export const PlacesPage: React.FC = () => {
       </div>
 
       {/* Main Display: Grid or Table */}
-      {viewMode === 'grid' ? (
+      {isLoading ? (
+        <div className="text-center py-12 text-gray-400 font-medium">Chargement des emplacements...</div>
+      ) : viewMode === 'grid' ? (
         <PlaceGrid places={filteredPlaces} onSelectPlace={(p) => setSelectedPlace(p)} />
       ) : (
         <DataTable

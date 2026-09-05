@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { DataTable, Column } from '../components/ui/DataTable';
@@ -6,9 +6,8 @@ import { FilterBar } from '../components/ui/FilterBar';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { Modal } from '../components/ui/Modal';
 import { formatBIF, formatDate } from '../lib/formatters';
-import { mockMerchants, mockPlaces } from '../data/mock-data';
 import { Merchant } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { usePermissions } from '../context/AuthContext';
 import { PermissionGate } from '../components/auth/PermissionGate';
 import { useToast } from '../components/ui/Toast';
@@ -19,9 +18,17 @@ export const MerchantsPage: React.FC = () => {
   const { hasPermission } = usePermissions();
   const { showToast } = useToast();
 
-  const [merchants, setMerchants] = useState<Merchant[]>(mockMerchants);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
+
+  useEffect(() => {
+    ApiService.getMerchants()
+      .then(setMerchants)
+      .catch(() => showToast('Impossible de charger les commerçants', 'error'))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   // Modal create merchant state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,7 +52,7 @@ export const MerchantsPage: React.FC = () => {
   const handleCreateMerchant = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await MockApiService.createMerchant({
+      const created = await ApiService.createMerchant({
         fullName: formData.fullName,
         phone: formData.phone,
         email: formData.email,
@@ -165,6 +172,7 @@ export const MerchantsPage: React.FC = () => {
         data={filteredMerchants}
         keyExtractor={(m) => m.id}
         onRowClick={(m) => navigate(`/commerce/${m.id}`)}
+        isLoading={isLoading}
       />
 
       {/* Modal Create Merchant */}

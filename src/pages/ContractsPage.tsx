@@ -6,7 +6,7 @@ import { FilterBar } from '../components/ui/FilterBar';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatBIF, formatDateShort } from '../lib/formatters';
 import { Contract } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { usePermissions } from '../context/AuthContext';
 import { FileText, Plus } from 'lucide-react';
 
@@ -19,7 +19,7 @@ export const ContractsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    MockApiService.getContracts().then((data) => {
+    ApiService.getContracts().then((data) => {
       setContracts(data);
       setIsLoading(false);
     });
@@ -86,7 +86,7 @@ export const ContractsPage: React.FC = () => {
         actions={
           hasPermission('commerce.create') && (
             <button
-              onClick={() => navigate('/contracts/new')}
+              onClick={() => navigate('/contrats/nouveau')}
               className="px-4 py-2.5 bg-mint-500 hover:bg-mint-600 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />

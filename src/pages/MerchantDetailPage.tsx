@@ -3,34 +3,44 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { formatBIF } from '../lib/formatters';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { Merchant, Contract, Payment, PaymentSlip, ReminderHistoryItem } from '../types/domain';
-import { mockContracts, mockPayments, mockPaymentSlips, mockReminders } from '../data/mock-data';
 import { User, Mail, Phone, MapPin, Calendar, FileText, CreditCard, Bell, Activity } from 'lucide-react';
 
 export const MerchantDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [merchant, setMerchant] = useState<Merchant | null>(null);
+  const [mContracts, setMContracts] = useState<Contract[]>([]);
+  const [mPayments, setMPayments] = useState<Payment[]>([]);
+  const [mSlips, setMSlips] = useState<PaymentSlip[]>([]);
+  const [mReminders, setMReminders] = useState<ReminderHistoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<'info' | 'contracts' | 'payments' | 'slips' | 'notifications' | 'activity'>('info');
 
   useEffect(() => {
     if (id) {
-      MockApiService.getMerchantById(id).then((data) => {
+      ApiService.getMerchantById(id).then((data) => {
         if (data) setMerchant(data);
-        else navigate('/merchants');
-      });
+        else navigate('/commerce');
+      }).catch(() => navigate('/commerce'));
     }
   }, [id, navigate]);
 
-  if (!merchant) return null;
+  useEffect(() => {
+    if (id) {
+      ApiService.getMerchantContracts(id).then(setMContracts).catch(() => setMContracts([]));
+      ApiService.getPayments().then((all) => setMPayments(all.filter((p) => p.merchantId === id))).catch(() => setMPayments([]));
+      ApiService.getPaymentSlips().then((all) => setMSlips(all.filter((s) => s.merchantId === id))).catch(() => setMSlips([]));
+      ApiService.getDisputes().then((all) => {
+        const reminders = all
+          .filter((d) => d.merchantId === id)
+          .flatMap((d) => d.reminders || []);
+        setMReminders(reminders);
+      }).catch(() => setMReminders([]));
+    }
+  }, [id]);
 
-  // Mock data specific to this merchant
-  const mContracts = mockContracts.filter(c => c.merchantId === merchant.id);
-  const mPayments = mockPayments.filter(p => p.merchantId === merchant.id);
-  const mSlips = mockPaymentSlips.filter(s => s.merchantId === merchant.id);
-  // simplified mock for reminders
-  const mReminders = mockReminders; 
+  if (!merchant) return null;
 
   const tabs = [
     { id: 'info', label: 'Infos Personnelles', icon: User },
@@ -46,7 +56,7 @@ export const MerchantDetailPage: React.FC = () => {
       <PageHeader
         title={merchant.fullName}
         subtitle={`Dossier locataire • CNI: ${merchant.identityCardNumber}`}
-        breadcrumbs={[{ label: 'Commerçants', to: '/merchants' }, { label: merchant.fullName }]}
+        breadcrumbs={[{ label: 'Commerçants', to: '/commerce' }, { label: merchant.fullName }]}
       />
 
       {/* Profile Header Card */}

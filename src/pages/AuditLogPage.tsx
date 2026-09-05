@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../components/ui/PageHeader';
 import { DataTable, Column } from '../components/ui/DataTable';
 import { AuditLog } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { History, Search } from 'lucide-react';
 import { formatDateShort } from '../lib/formatters';
 
@@ -12,7 +12,7 @@ export const AuditLogPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    MockApiService.getAuditLogs().then(data => {
+    ApiService.getAuditLogs().then(data => {
       setLogs(data);
       setIsLoading(false);
     });

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { formatBIF } from '../lib/formatters';
 import { Merchant, Place } from '../types/domain';
-import { MockApiService } from '../services/mock-api';
+import { ApiService } from '../services/api';
 import { usePermissions } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { FileText, ChevronRight, CheckCircle2, AlertOctagon } from 'lucide-react';
@@ -30,8 +30,8 @@ export const NewContractPage: React.FC = () => {
       navigate('/contracts');
       return;
     }
-    MockApiService.getMerchants().then(m => setMerchants(m.filter(x => x.status === 'ACTIF')));
-    MockApiService.getPlaces().then(p => setFreePlaces(p.filter(x => x.status === 'LIBRE')));
+    ApiService.getMerchants().then(m => setMerchants(m.filter(x => x.status === 'ACTIF')));
+    ApiService.getPlaces().then(p => setFreePlaces(p.filter(x => x.status === 'LIBRE')));
   }, [hasPermission, navigate, showToast]);
 
   const selectedPlace = freePlaces.find((p) => p.id === selectedPlaceId);
@@ -46,7 +46,7 @@ export const NewContractPage: React.FC = () => {
     if (!selectedPlace || !selectedMerchant || !subleaseAgreed) return;
 
     try {
-      await MockApiService.createContract({
+      await ApiService.createContract({
         merchantId: selectedMerchant.id,
         merchantName: selectedMerchant.fullName,
         placeId: selectedPlace.id,

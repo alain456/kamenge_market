@@ -1,21 +1,19 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Store,
   Users,
   FileText,
-  CalendarCheck,
-  CreditCard,
   AlertOctagon,
   Calculator,
-  BarChart3,
   UserCheck,
   Settings,
-  History,
   Rocket,
   LogOut,
   X,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { usePermissions } from '../../context/AuthContext';
 
@@ -25,8 +23,18 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMobile }) => {
-  const { logout, currentUser, hasPermission, canAccessDomain } = usePermissions();
+  const { logout, currentUser, currentRole, isAdmin, sessionReady, hasPermission, canAccessDomain } = usePermissions();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [adminOpen, setAdminOpen] = useState(location.pathname.startsWith('/administration'));
+
+  const adminItems = [
+    { to: '/administration/utilisateurs', label: 'Utilisateurs' },
+    { to: '/administration/roles', label: 'Rôles' },
+    { to: '/administration/permissions', label: 'Permissions' },
+    { to: '/administration/audit', label: 'Journal d\'audit' },
+    { to: '/administration/parametres', label: 'Paramètres' },
+  ];
 
   const navItems = [
     { to: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard, show: true },
@@ -38,8 +46,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
     { to: '/securite', label: 'Sécurité', icon: AlertOctagon, show: canAccessDomain('securite') },
     { to: '/documents', label: 'Documents', icon: FileText, show: canAccessDomain('documents') },
     { to: '/plaintes', label: 'Plaintes', icon: AlertOctagon, show: canAccessDomain('plaintes') },
-    { to: '/administration/utilisateurs', label: 'Administration des accès', icon: UserCheck, show: hasPermission('rh.validate') },
   ].filter(item => item.show);
+
+  const showAdminSection = sessionReady && isAdmin;
 
   return (
     <>
@@ -97,6 +106,43 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
                 </NavLink>
               );
             })}
+
+            {showAdminSection && (
+              <div className="pt-2">
+                <button
+                  onClick={() => setAdminOpen(!adminOpen)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 ${
+                    location.pathname.startsWith('/administration')
+                      ? 'bg-gray-900 text-white shadow-md'
+                      : 'text-gray-500 hover:bg-gray-100/80 hover:text-gray-900'
+                  }`}
+                >
+                  <UserCheck className="w-4 h-4 shrink-0" />
+                  <span className="truncate flex-1 text-left">Administration</span>
+                  {adminOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                </button>
+                {adminOpen && (
+                  <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-gray-100 pl-3">
+                    {adminItems.map((item) => (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        onClick={onCloseMobile}
+                        className={({ isActive }) =>
+                          `block px-3 py-2 rounded-xl text-[11px] font-bold transition-colors ${
+                            isActive
+                              ? 'bg-mint-50 text-mint-700'
+                              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+                          }`
+                        }
+                      >
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </nav>
         </div>
 
@@ -117,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
               <button
                 onClick={() => {
                   if (onCloseMobile) onCloseMobile();
-                  navigate('/contracts/new');
+                  navigate('/contrats/nouveau');
                 }}
                 className="w-full bg-white text-mint-600 hover:bg-emerald-50 text-xs font-black py-2 px-3 rounded-full transition-colors shadow-xs"
               >
@@ -140,7 +186,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
                   {currentUser?.fullName || 'Utilisateur'}
                 </p>
                 <p className="text-[10px] font-semibold text-gray-400 truncate">
-                  {currentUser?.roleId}
+                  {currentRole?.name || currentUser?.roleId}
                 </p>
               </div>
             </div>
